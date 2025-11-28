@@ -1,0 +1,373 @@
+import React, { useState, useEffect } from 'react';
+import {
+    Box, Typography, Button, Card, CardContent, Grid, Dialog, DialogTitle,
+    DialogContent, TextField, MenuItem, Chip, Table, TableBody, TableCell,
+    TableContainer, TableHead, TableRow, Paper, IconButton, Stepper, Step, StepLabel,
+    FormControl, InputLabel, Select, Switch, FormControlLabel
+} from '@mui/material';
+import { Add, Assignment, CheckCircle, WhatsApp, Edit, Close } from '@mui/icons-material';
+import axios from 'axios';
+import { useTheme } from '@mui/material/styles';
+
+const TestManager = () => {
+    const theme = useTheme();
+    const [tests, setTests] = useState([]);
+    const [courses, setCourses] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [gradingOpen, setGradingOpen] = useState(false);
+    const [selectedTest, setSelectedTest] = useState(null);
+    const [activeStep, setActiveStep] = useState(0);
+
+    // Form State
+    const [formData, setFormData] = useState({
+        title: '',
+        courseId: '',
+        date: '',
+        totalMarks: 100,
+        type: 'SUBJECTIVE',
+        syllabus: '',
+        notify: true
+    });
+
+    // Grading State
+    const [gradingData, setGradingData] = useState([]);
+
+    useEffect(() => {
+        fetchTests();
+        fetchCourses();
+    }, []);
+
+    const fetchTests = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get('http://localhost:5000/api/features/tests', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            console.log('Tests response:', res.data);
+            setTests(res.data.data);
+        } catch (error) {
+            console.error('Error fetching tests:', error);
+        }
+    };
+
+    const fetchCourses = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get('http://localhost:5000/api/courses/teacher/my-courses', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setCourses(res.data.data || []);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleCreate = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post('http://localhost:5000/api/features/tests', formData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (formData.notify) {
+                const course = courses.find(c => c._id === formData.courseId);
+                const message = `Dear Parents, a ${formData.type} test on "${formData.title}" for ${course?.title} (Syllabus: ${formData.syllabus}) is scheduled for ${new Date(formData.date).toDateString()}. Total Marks: ${formData.totalMarks}. Please ensure your ward prepares well.`;
+                const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+            }
+
+            setOpen(false);
+            fetchTests();
+            setActiveStep(0);
+            setFormData({
+                title: '',
+                courseId: '',
+                date: '',
+                totalMarks: 100,
+                type: 'SUBJECTIVE',
+                syllabus: '',
+                notify: true
+            });
+            alert('Test created successfully!');
+        } catch (error) {
+            console.error('Full error:', error);
+            console.error('Error response:', error.response?.data);
+            alert(`Error creating test: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    const openGrading = async (test) => {
+        setSelectedTest(test);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`http://localhost:5000/api/features/tests/${test._id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const results = res.data.data.results.map(r => ({
+                studentId: r.student._id || r.student,
+                name: r.student.name || 'Unknown',
+                marks: r.marks,
+                status: r.status
+            }));
+
+            setGradingData(results);
+            setGradingOpen(true);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleGradeChange = (index, field, value) => {
+        const newData = [...gradingData];
+        newData[index][field] = value;
+        setGradingData(newData);
+    };
+
+    const saveGrades = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(`http://localhost:5000/api/features/tests/${selectedTest._id}/results`, {
+                results: gradingData
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setGradingOpen(false);
+            fetchTests();
+            alert('Grades saved successfully!');
+        } catch (error) {
+            console.error(error);
+            alert('Error saving grades');
+        }
+    };
+
+    const calculateAverage = () => {
+        if (gradingData.length === 0) return 0;
+        const total = gradingData.reduce((sum, item) => sum + Number(item.marks || 0), 0);
+        return (total / gradingData.length).toFixed(1);
+    };
+
+    const steps = ['Basic Info', 'Details', 'Review'];
+
+    return (
+        <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+                <Typography variant="h4" fontWeight="bold">Test Management</Typography>
+                <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => setOpen(true)}
+                    className="btn-animate"
+                    sx={{ borderRadius: '20px', background: theme.palette.gradients.secondary }}
+                >
+                    Create Test
+                </Button>
+            </Box>
+
+            <Grid container spacing={3}>
+                {tests.map((test) => (
+                    <Grid item xs={12} md={6} lg={4} key={test._id}>
+                        <Card className="glass-card">
+                            <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                    <Typography variant="h6" fontWeight="bold">{test.title}</Typography>
+                                    <Chip label={test.type} size="small" color="primary" variant="outlined" />
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    {test.course?.title} • {new Date(test.date).toLocaleDateString()}
+                                </Typography>
+                                <Typography variant="body2" sx={{ mb: 2 }}>
+                                    Syllabus: {test.syllabus}
+                                </Typography>
+
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Button
+                                        variant="outlined"
+                                        fullWidth
+                                        size="small"
+                                        onClick={() => openGrading(test)}
+                                        className="btn-animate"
+                                    >
+                                        Grade / Results
+                                    </Button>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+
+            {/* Create Test Wizard */}
+            <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
+                <DialogTitle>Create New Test</DialogTitle>
+                <DialogContent>
+                    <Stepper activeStep={activeStep} sx={{ mb: 4, mt: 2 }}>
+                        {steps.map((label) => (
+                            <Step key={label}><StepLabel>{label}</StepLabel></Step>
+                        ))}
+                    </Stepper>
+
+                    {activeStep === 0 && (
+                        <Box>
+                            <TextField
+                                label="Test Title"
+                                fullWidth
+                                margin="normal"
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            />
+                            <TextField
+                                select
+                                label="Course"
+                                fullWidth
+                                margin="normal"
+                                value={formData.courseId}
+                                onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
+                            >
+                                {courses.map((c) => (
+                                    <MenuItem key={c._id} value={c._id}>{c.title}</MenuItem>
+                                ))}
+                            </TextField>
+                            <TextField
+                                type="date"
+                                label="Date"
+                                fullWidth
+                                margin="normal"
+                                InputLabelProps={{ shrink: true }}
+                                value={formData.date}
+                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                            />
+                        </Box>
+                    )}
+
+                    {activeStep === 1 && (
+                        <Box>
+                            <TextField
+                                select
+                                label="Test Type"
+                                fullWidth
+                                margin="normal"
+                                value={formData.type}
+                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                            >
+                                <MenuItem value="SUBJECTIVE">Subjective</MenuItem>
+                                <MenuItem value="OBJECTIVE">Objective</MenuItem>
+                                <MenuItem value="PRACTICAL">Practical</MenuItem>
+                                <MenuItem value="VIVA">Viva</MenuItem>
+                            </TextField>
+                            <TextField
+                                label="Total Marks"
+                                type="number"
+                                fullWidth
+                                margin="normal"
+                                value={formData.totalMarks}
+                                onChange={(e) => setFormData({ ...formData, totalMarks: e.target.value })}
+                            />
+                            <TextField
+                                label="Syllabus"
+                                fullWidth
+                                multiline
+                                rows={3}
+                                margin="normal"
+                                value={formData.syllabus}
+                                onChange={(e) => setFormData({ ...formData, syllabus: e.target.value })}
+                            />
+                        </Box>
+                    )}
+
+                    {activeStep === 2 && (
+                        <Box>
+                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Summary</Typography>
+                            <Typography variant="body2"><b>Title:</b> {formData.title}</Typography>
+                            <Typography variant="body2"><b>Course:</b> {courses.find(c => c._id === formData.courseId)?.title}</Typography>
+                            <Typography variant="body2"><b>Date:</b> {formData.date}</Typography>
+                            <Typography variant="body2"><b>Type:</b> {formData.type}</Typography>
+                            <Typography variant="body2"><b>Marks:</b> {formData.totalMarks}</Typography>
+
+                            <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(37, 211, 102, 0.1)', borderRadius: 2, display: 'flex', alignItems: 'center' }}>
+                                <WhatsApp sx={{ color: '#25D366', mr: 2 }} />
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={formData.notify}
+                                            onChange={(e) => setFormData({ ...formData, notify: e.target.checked })}
+                                            color="success"
+                                        />
+                                    }
+                                    label="Notify Parents on WhatsApp"
+                                />
+                            </Box>
+                        </Box>
+                    )}
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                        <Button disabled={activeStep === 0} onClick={() => setActiveStep(prev => prev - 1)}>Back</Button>
+                        {activeStep === steps.length - 1 ? (
+                            <Button variant="contained" onClick={handleCreate} sx={{ background: theme.palette.gradients.primary }}>Create Test</Button>
+                        ) : (
+                            <Button variant="contained" onClick={() => setActiveStep(prev => prev + 1)}>Next</Button>
+                        )}
+                    </Box>
+                </DialogContent>
+            </Dialog>
+
+            {/* Grading Modal */}
+            <Dialog open={gradingOpen} onClose={() => setGradingOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
+                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Grading: {selectedTest?.title}
+                    <Box>
+                        <Chip label={`Class Avg: ${calculateAverage()}`} color="primary" variant="outlined" sx={{ mr: 1 }} />
+                        <IconButton onClick={() => setGradingOpen(false)}><Close /></IconButton>
+                    </Box>
+                </DialogTitle>
+                <DialogContent>
+                    <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Student</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell>Marks (/{selectedTest?.totalMarks})</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {gradingData.map((row, index) => (
+                                    <TableRow key={row.studentId}>
+                                        <TableCell>{row.name}</TableCell>
+                                        <TableCell>
+                                            <Select
+                                                size="small"
+                                                value={row.status}
+                                                onChange={(e) => handleGradeChange(index, 'status', e.target.value)}
+                                            >
+                                                <MenuItem value="PRESENT">Present</MenuItem>
+                                                <MenuItem value="ABSENT">Absent</MenuItem>
+                                            </Select>
+                                        </TableCell>
+                                        <TableCell>
+                                            <TextField
+                                                size="small"
+                                                type="number"
+                                                value={row.marks}
+                                                onChange={(e) => handleGradeChange(index, 'marks', e.target.value)}
+                                                disabled={row.status === 'ABSENT'}
+                                                inputProps={{ max: selectedTest?.totalMarks, min: 0 }}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button variant="contained" onClick={saveGrades} sx={{ background: theme.palette.gradients.primary }}>
+                            Save Results
+                        </Button>
+                    </Box>
+                </DialogContent>
+            </Dialog>
+        </Box>
+    );
+};
+
+export default TestManager;
