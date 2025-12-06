@@ -264,7 +264,8 @@ exports.addModule = async (req, res) => {
 // @access  Private (Teacher - own course only)
 exports.addLecture = async (req, res) => {
     try {
-        const { title, description, videoUrl, videoPublicId, duration, order, resources, type, content } = req.body;
+        const { title, description, videoUrl, videoPublicId, duration, order, resources, type, content, pdfUrl, pdfPublicId } = req.body;
+        console.log('📝 Adding lecture with data:', { title, type, videoUrl, content, pdfUrl });
 
         const course = await Course.findById(req.params.courseId);
 
@@ -292,6 +293,7 @@ exports.addLecture = async (req, res) => {
             });
         }
 
+        console.log('✅ Module found, adding lecture...');
         module.lectures.push({
             title,
             description,
@@ -302,13 +304,88 @@ exports.addLecture = async (req, res) => {
             resources: resources || [],
             type: type || 'video',
             content,
+            pdfUrl,
+            pdfPublicId,
         });
 
+        console.log('💾 Saving course...');
         await course.save();
+        console.log('✅ Lecture added successfully');
 
         res.status(201).json({
             success: true,
             message: 'Lecture added successfully',
+            data: course,
+        });
+    } catch (error) {
+        console.error('❌ Error adding lecture:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+// @desc    Update lecture
+// @route   PUT /api/courses/:courseId/modules/:moduleId/lectures/:lectureId
+// @access  Private (Teacher - own course only)
+exports.updateLecture = async (req, res) => {
+    try {
+        const { title, description, videoUrl, videoPublicId, duration, order, resources, type, content, pdfUrl, pdfPublicId } = req.body;
+
+        const course = await Course.findById(req.params.courseId);
+
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: 'Course not found',
+            });
+        }
+
+        // Check authorization
+        if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to modify this course',
+            });
+        }
+
+        const module = course.modules.id(req.params.moduleId);
+
+        if (!module) {
+            return res.status(404).json({
+                success: false,
+                message: 'Module not found',
+            });
+        }
+
+        const lecture = module.lectures.id(req.params.lectureId);
+
+        if (!lecture) {
+            return res.status(404).json({
+                success: false,
+                message: 'Lecture not found',
+            });
+        }
+
+        // Update fields
+        if (title) lecture.title = title;
+        if (description) lecture.description = description;
+        if (videoUrl !== undefined) lecture.videoUrl = videoUrl;
+        if (videoPublicId !== undefined) lecture.videoPublicId = videoPublicId;
+        if (duration !== undefined) lecture.duration = duration;
+        if (order !== undefined) lecture.order = order;
+        if (resources) lecture.resources = resources;
+        if (type) lecture.type = type;
+        if (content !== undefined) lecture.content = content;
+        if (pdfUrl !== undefined) lecture.pdfUrl = pdfUrl;
+        if (pdfPublicId !== undefined) lecture.pdfPublicId = pdfPublicId;
+
+        await course.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Lecture updated successfully',
             data: course,
         });
     } catch (error) {
@@ -392,6 +469,49 @@ exports.uploadThumbnail = async (req, res) => {
             message: 'Thumbnail uploaded successfully',
             data: {
                 thumbnailUrl: result.secure_url,
+            },
+        });
+    } catch (error) {
+        // Delete local file if upload fails
+        if (req.file && req.file.path) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+// @desc    Upload PDF to Cloudinary
+// @route   POST /api/courses/upload/pdf
+// @access  Private (Teacher only)
+exports.uploadPDF = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload a PDF file',
+            });
+        }
+
+        // Upload to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            resource_type: 'auto',
+            folder: 'lms-pdfs',
+            format: 'pdf',
+        });
+
+        // Delete local file
+        fs.unlinkSync(req.file.path);
+
+        res.status(200).json({
+            success: true,
+            message: 'PDF uploaded successfully',
+            data: {
+                pdfUrl: result.secure_url,
+                pdfPublicId: result.public_id,
             },
         });
     } catch (error) {

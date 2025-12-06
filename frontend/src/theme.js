@@ -4,125 +4,85 @@ const getTheme = (mode) => createTheme({
     palette: {
         mode,
         primary: {
-            main: '#4f46e5', // Darker indigo for better contrast
-            light: '#818cf8',
-            dark: '#3730a3',
+            main: '#6366f1', // Indigo 500
+            light: '#818cf8', // Indigo 400
+            dark: '#4f46e5', // Indigo 600
             contrastText: '#ffffff',
         },
         secondary: {
-            main: '#db2777', // Darker pink
-            light: '#f472b6',
-            dark: '#be185d',
-            contrastText: '#ffffff',
-        },
-        error: {
-            main: '#dc2626',
-            light: '#ef4444',
-            dark: '#b91c1c',
-            contrastText: '#ffffff',
-        },
-        warning: {
-            main: '#d97706',
-            light: '#f59e0b',
-            dark: '#b45309',
-            contrastText: '#ffffff',
-        },
-        info: {
-            main: '#2563eb',
-            light: '#3b82f6',
-            dark: '#1d4ed8',
-            contrastText: '#ffffff',
-        },
-        success: {
-            main: '#16a34a',
-            light: '#22c55e',
-            dark: '#15803d',
+            main: '#ec4899', // Pink 500
+            light: '#f472b6', // Pink 400
+            dark: '#db2777', // Pink 600
             contrastText: '#ffffff',
         },
         background: {
-            default: mode === 'light' ? '#f8fafc' : '#0f172a',
-            paper: mode === 'light' ? '#ffffff' : '#1e293b',
-            glass: mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.9)', // Increased opacity for readability
+            default: mode === 'light' ? '#f8fafc' : '#0f172a', // Slate 900 for dark
+            paper: mode === 'light' ? '#ffffff' : '#1e293b',   // Slate 800 for dark
+            subtle: mode === 'light' ? '#f1f5f9' : '#334155',
         },
         text: {
-            primary: mode === 'light' ? '#0f172a' : '#f8fafc', // Higher contrast
-            secondary: mode === 'light' ? '#475569' : '#cbd5e1',
+            primary: mode === 'light' ? '#0f172a' : '#f8fafc',
+            secondary: mode === 'light' ? '#64748b' : '#94a3b8',
+        },
+        action: {
+            hover: mode === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
         },
         gradients: {
-            primary: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-            secondary: 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
+            primary: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+            secondary: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
             glass: mode === 'light'
-                ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%)'
-                : 'linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.2) 100%)',
-        }
+                ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%)'
+                : 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%)',
+        },
     },
     typography: {
-        fontFamily: '"Poppins", "Inter", "Roboto", sans-serif',
-        h1: { fontSize: '2.5rem', fontWeight: 700, lineHeight: 1.2 },
-        h2: { fontSize: '2rem', fontWeight: 700, lineHeight: 1.3 },
-        h3: { fontSize: '1.75rem', fontWeight: 600, lineHeight: 1.3 },
-        h4: { fontSize: '1.5rem', fontWeight: 600, lineHeight: 1.4 },
-        h5: { fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.4 },
-        h6: { fontSize: '1rem', fontWeight: 600, lineHeight: 1.5 },
-        button: { textTransform: 'none', fontWeight: 600, letterSpacing: '0.02em' },
-        body1: { lineHeight: 1.6 },
-        body2: { lineHeight: 1.6 },
+        fontFamily: ['Inter', 'system-ui', 'sans-serif'].join(','),
+        h1: { fontWeight: 700, letterSpacing: '-0.025em' },
+        h2: { fontWeight: 700, letterSpacing: '-0.025em' },
+        h3: { fontWeight: 600, letterSpacing: '-0.025em' },
+        h4: { fontWeight: 600, letterSpacing: '-0.025em' },
+        h6: { fontWeight: 600 },
+        button: { textTransform: 'none', fontWeight: 600 },
     },
     shape: {
         borderRadius: 16,
     },
     components: {
-        MuiCssBaseline: {
-            styleOverrides: {
-                body: {
-                    scrollBehavior: 'smooth',
-                },
-                // Global focus styles
-                '*:focus-visible': {
-                    outline: '2px solid #4f46e5',
-                    outlineOffset: '2px',
-                }
-            }
-        },
         MuiButton: {
             styleOverrides: {
                 root: {
                     borderRadius: 12,
-                    padding: '12px 24px', // Larger touch target
-                    fontSize: '0.95rem',
-                    minHeight: '48px', // Accessibility requirement
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    '&:focus-visible': {
-                        boxShadow: '0 0 0 4px rgba(79, 70, 229, 0.4)',
-                    }
+                    padding: '10px 24px',
+                    boxShadow: 'none',
+                    '&:hover': {
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        transform: 'translateY(-1px)',
+                    },
+                    transition: 'all 0.2s ease-in-out',
                 },
                 containedPrimary: {
-                    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                 },
                 containedSecondary: {
-                    background: 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
+                    background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
                 },
             },
-        },
-        MuiIconButton: {
-            styleOverrides: {
-                root: {
-                    padding: 12, // Ensure 48px touch target
-                    '&:focus-visible': {
-                        outline: '2px solid #4f46e5',
-                        outlineOffset: '2px',
-                    }
-                }
-            }
         },
         MuiCard: {
             styleOverrides: {
                 root: {
-                    borderRadius: 20,
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                    background: mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.9)',
-                    backdropFilter: 'blur(12px)',
-                    border: mode === 'light' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: 16,
+                    backgroundImage: 'none',
+                    boxShadow: mode === 'light'
+                        ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                        : '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)',
+                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                    '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: mode === 'light'
+                            ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                            : '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15)',
+                    },
                 },
             },
         },
@@ -130,16 +90,35 @@ const getTheme = (mode) => createTheme({
             styleOverrides: {
                 root: {
                     backgroundImage: 'none',
-                }
-            }
+                },
+            },
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: 12,
+                        '& fieldset': {
+                            borderColor: mode === 'light' ? '#e2e8f0' : '#334155',
+                        },
+                        '&:hover fieldset': {
+                            borderColor: '#818cf8',
+                        },
+                        '&.Mui-focused fieldset': {
+                            borderColor: '#6366f1',
+                        },
+                    },
+                },
+            },
         },
         MuiChip: {
             styleOverrides: {
                 root: {
+                    borderRadius: 8,
                     fontWeight: 500,
-                }
-            }
-        }
+                },
+            },
+        },
     },
 });
 

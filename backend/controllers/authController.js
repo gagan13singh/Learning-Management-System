@@ -27,13 +27,29 @@ exports.register = async (req, res) => {
             phone,
         });
 
+        // Generate tokens
+        const token = generateToken(user._id);
+        const refreshToken = generateRefreshToken(user._id);
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration successful',
+            data: {
+                user: user.getPublicProfile(),
+                token,
+                refreshToken,
+            },
+        });
     } catch (error) {
+        console.error('Register Error:', error);
         res.status(500).json({
             success: false,
             message: error.message,
         });
     }
 };
+
+
 
 // @desc    Bulk Register Students (CSV)
 // @route   POST /api/auth/bulk-register

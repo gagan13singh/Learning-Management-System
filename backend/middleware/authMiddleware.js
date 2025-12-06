@@ -69,7 +69,8 @@ exports.generateToken = (id) => {
 
 // Generate refresh token
 exports.generateRefreshToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, {
+    const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+    return jwt.sign({ id }, secret, {
         expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d',
     });
 };

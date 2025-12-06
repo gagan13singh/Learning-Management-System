@@ -11,11 +11,11 @@ const {
     getBatchHealth,
     addStudentToBatch
 } = require('../controllers/batchController');
-const {
+/* const {
     markAttendance,
     getBatchAttendance,
     getStudentAttendance
-} = require('../controllers/attendanceController');
+} = require('../controllers/attendanceController'); */
 const {
     getStudentBehaviour,
     getParentUpdateReport,
@@ -47,9 +47,9 @@ router.post('/batches/add-student', protect, authorize('admin', 'teacher'), addS
 router.get('/batches/:id/health', protect, authorize('admin', 'teacher'), getBatchHealth);
 
 // Attendance Routes
-router.post('/attendance', protect, authorize('admin', 'teacher'), markAttendance);
-router.get('/attendance/batch/:batchId', protect, authorize('admin', 'teacher'), getBatchAttendance);
-router.get('/attendance/student/:studentId', protect, getStudentAttendance);
+// router.post('/attendance', protect, authorize('admin', 'teacher'), markAttendance);
+// router.get('/attendance/batch/:batchId', protect, authorize('admin', 'teacher'), getBatchAttendance);
+// router.get('/attendance/student/:studentId', protect, getStudentAttendance);
 
 // Analytics Routes
 router.get('/analytics/behaviour/:studentId', protect, authorize('admin', 'teacher'), getStudentBehaviour);

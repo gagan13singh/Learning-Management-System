@@ -1,6 +1,7 @@
 const Test = require('../models/Test');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
+const TestResult = require('../models/TestResult');
 const notificationController = require('./notificationController');
 
 // Create a new test
@@ -382,6 +383,55 @@ exports.getQuizResults = async (req, res) => {
             .sort({ submittedAt: -1 });
 
         res.status(200).json({ success: true, data: attempts });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get Upcoming Tests for Student
+// @route   GET /api/tests/upcoming
+// @access  Private (Student)
+exports.getUpcomingTests = async (req, res) => {
+    try {
+        // Enrolled courses
+        const Enrollment = require('../models/Enrollment');
+        const enrollments = await Enrollment.find({ student: req.user.id, status: 'active' });
+        const courseIds = enrollments.map(e => e.course);
+
+        const upcomingTests = await Test.find({
+            course: { $in: courseIds },
+            date: { $gte: new Date() }
+        })
+            .populate('course', 'title')
+            .sort({ date: 1 })
+            .limit(5);
+
+        res.status(200).json({ success: true, data: upcomingTests });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get Student Test Results (Performance)
+// @route   GET /api/tests/my-results
+// @access  Private (Student)
+exports.getStudentTestResults = async (req, res) => {
+    try {
+        // Fetch from TestResult model (offline/general tests)
+        const results = await TestResult.find({ student: req.user.id })
+            .populate('test', 'title date totalMarks')
+            .sort({ submittedAt: -1 })
+            .limit(5);
+
+        // Transform for chart data
+        const chartData = results.map((r, index) => ({
+            name: `Test ${results.length - index}`, // or r.test.title
+            score: r.percentage,
+            title: r.test.title,
+            date: r.test.date
+        })).reverse(); // Oldest first for line chart
+
+        res.status(200).json({ success: true, data: chartData });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
 import {
     Container,
     Grid,
@@ -33,14 +34,20 @@ import {
     ArrowBack,
     Lock,
     Download,
+    EmojiEvents,
+    Warning,
+    Fullscreen,
+    FullscreenExit,
 } from '@mui/icons-material';
 import ReactPlayer from 'react-player';
 import Navbar from '../../components/common/Navbar';
+import PDFViewer from '../../components/student/PDFViewer';
 import api from '../../utils/api';
 
 const CoursePlayer = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const theme = useTheme();
     const [course, setCourse] = useState(null);
     const [activeLecture, setActiveLecture] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -50,20 +57,51 @@ const CoursePlayer = () => {
     const [progress, setProgress] = useState({}); // Map of lectureId -> boolean (completed)
     const [courseProgress, setCourseProgress] = useState(0);
     const [certificateId, setCertificateId] = useState(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [userName, setUserName] = useState('');
 
     useEffect(() => {
         fetchCourse();
         fetchProgress();
+
+        // Get user info from localStorage or context
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        setUserName(user.name || user.email || 'Student');
     }, [id]);
+
+    useEffect(() => {
+        // Block screenshot keyboard shortcuts
+        const handleKeyDown = (e) => {
+            // Block PrintScreen, Windows+Shift+S, Ctrl+Shift+S, Cmd+Shift+4
+            if (
+                e.key === 'PrintScreen' ||
+                (e.key === 's' && e.shiftKey && (e.metaKey || e.ctrlKey)) ||
+                (e.key === '4' && e.shiftKey && e.metaKey)
+            ) {
+                e.preventDefault();
+                alert('Screenshots are disabled for this content to protect intellectual property.');
+                return false;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const fetchCourse = async () => {
         try {
             const response = await api.get(`/courses/${id}`);
+            console.log('Course Data:', response.data.data);
             setCourse(response.data.data);
 
             // Set first lecture as active if available
             if (response.data.data.modules?.[0]?.lectures?.[0]) {
-                setActiveLecture(response.data.data.modules[0].lectures[0]);
+                const firstLecture = response.data.data.modules[0].lectures[0];
+                console.log('First Lecture:', firstLecture);
+                console.log('Lecture type:', firstLecture.type);
+                console.log('Video URL:', firstLecture.videoUrl);
+                console.log('Content:', firstLecture.content);
+                setActiveLecture(firstLecture);
             }
         } catch (error) {
             console.error('Error fetching course:', error);
@@ -139,11 +177,17 @@ const CoursePlayer = () => {
 
     const handleStartQuiz = async (quizId) => {
         try {
+            if (!quizId) {
+                alert('This quiz has not been set up yet. Please contact your instructor.');
+                return;
+            }
+            console.log('Fetching quiz with ID:', quizId);
             const response = await api.get(`/quizzes/${quizId}`);
             setActiveLecture({ ...activeLecture, quizData: response.data.data });
             setQuizState('taking');
         } catch (error) {
             console.error('Error fetching quiz:', error);
+            alert('Failed to load quiz. The quiz may not exist or you may not have access to it.');
         }
     };
 
@@ -213,72 +257,274 @@ const CoursePlayer = () => {
 
                 <Grid container spacing={3}>
                     {/* Main Content Area */}
-                    <Grid item xs={12} md={8}>
-                        <Paper elevation={2} sx={{ p: 3, minHeight: '60vh' }}>
+                    <Grid item xs={12} md={9}>
+                        <Paper elevation={0} sx={{ p: 3, minHeight: '60vh', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
                             {activeLecture ? (
                                 <>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                        <Typography variant="h5">
-                                            {activeLecture.title}
-                                        </Typography>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                                        <Box>
+                                            <Typography variant="h5" fontWeight="700" gutterBottom>
+                                                {activeLecture.title}
+                                            </Typography>
+                                            <Chip
+                                                label={(activeLecture.type || 'video').toUpperCase()}
+                                                size="small"
+                                                color={activeLecture.type === 'video' ? 'primary' : activeLecture.type === 'quiz' ? 'warning' : 'secondary'}
+                                                variant="outlined"
+                                                sx={{ fontWeight: 600, borderRadius: 1 }}
+                                            />
+                                        </Box>
                                         {progress[activeLecture._id] && (
-                                            <Chip icon={<CheckCircle />} label="Completed" color="success" size="small" />
+                                            <Chip icon={<CheckCircle />} label="Completed" color="success" variant="filled" />
                                         )}
                                     </Box>
 
                                     {activeLecture.type === 'video' && (
-                                        <Box sx={{ position: 'relative', paddingTop: '56.25%' }}>
-                                            <ReactPlayer
-                                                url={activeLecture.videoUrl}
-                                                width="100%"
-                                                height="100%"
-                                                style={{ position: 'absolute', top: 0, left: 0 }}
-                                                controls
-                                                onProgress={handleVideoProgress}
-                                            />
+                                        <Box sx={{ position: 'relative', paddingTop: '56.25%', borderRadius: 4, overflow: 'hidden', bgcolor: 'black', mb: 3 }}>
+                                            {activeLecture.videoUrl ? (
+                                                <ReactPlayer
+                                                    url={activeLecture.videoUrl}
+                                                    width="100%"
+                                                    height="100%"
+                                                    style={{ position: 'absolute', top: 0, left: 0 }}
+                                                    controls
+                                                    onProgress={handleVideoProgress}
+                                                    playing={false}
+                                                    config={{
+                                                        file: { attributes: { controlsList: 'nodownload' } }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
+                                                    <PlayCircle sx={{ fontSize: 64, color: 'text.disabled' }} />
+                                                    <Typography variant="h6" color="text.secondary">Video Unavailable</Typography>
+                                                    <Typography color="text.secondary" fontSize="0.875rem">
+                                                        The instructor hasn't uploaded a video for this lecture yet.
+                                                    </Typography>
+                                                </Box>
+                                            )}
                                         </Box>
                                     )}
 
                                     {activeLecture.type === 'text' && (
-                                        <Box sx={{ mt: 2 }}>
-                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 3 }}>
-                                                {activeLecture.content}
-                                            </Typography>
-                                            <Button
-                                                variant="contained"
-                                                onClick={handleMarkAsCompleted}
-                                                disabled={progress[activeLecture._id]}
-                                            >
-                                                {progress[activeLecture._id] ? 'Completed' : 'Mark as Completed'}
-                                            </Button>
-                                        </Box>
+                                        <>
+                                            {/* PDF Viewer Mode */}
+                                            {activeLecture.pdfUrl && !isFullscreen && (
+                                                <Box sx={{ mt: 2 }}>
+                                                    <PDFViewer
+                                                        pdfUrl={activeLecture.pdfUrl}
+                                                        lectureTitle={activeLecture.title}
+                                                        userName={userName}
+                                                        isFullscreenProp={false}
+                                                        onToggleFullscreen={setIsFullscreen}
+                                                    />
+
+                                                    {/* Show text content below PDF if available */}
+                                                    {activeLecture.content && (
+                                                        <Box sx={{ mt: 3, p: 3, bgcolor: 'background.subtle', borderRadius: 4 }}>
+                                                            <Typography variant="h6" gutterBottom>Additional Notes</Typography>
+                                                            <Divider sx={{ mb: 2 }} />
+                                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
+                                                                {activeLecture.content}
+                                                            </Typography>
+                                                        </Box>
+                                                    )}
+
+                                                    <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            onClick={handleMarkAsCompleted}
+                                                            disabled={progress[activeLecture._id]}
+                                                            startIcon={<CheckCircle />}
+                                                            sx={{ borderRadius: 2 }}
+                                                        >
+                                                            {progress[activeLecture._id] ? 'Completed' : 'Mark as Completed'}
+                                                        </Button>
+                                                    </Box>
+                                                </Box>
+                                            )}
+
+                                            {/* Text-Only Mode (No PDF) */}
+                                            {!activeLecture.pdfUrl && !isFullscreen && (
+                                                <Box sx={{ mt: 2, p: 3, bgcolor: 'background.subtle', borderRadius: 4, position: 'relative' }}>
+                                                    {activeLecture.content ? (
+                                                        <>
+                                                            <Box
+                                                                sx={{
+                                                                    maxHeight: '60vh',
+                                                                    overflowY: 'auto',
+                                                                    userSelect: 'none',
+                                                                    WebkitUserSelect: 'none'
+                                                                }}
+                                                                onContextMenu={(e) => e.preventDefault()}
+                                                            >
+                                                                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
+                                                                    {activeLecture.content}
+                                                                </Typography>
+                                                            </Box>
+                                                            <Button
+                                                                variant="outlined"
+                                                                startIcon={<Fullscreen />}
+                                                                onClick={() => setIsFullscreen(true)}
+                                                                sx={{ mt: 2 }}
+                                                            >
+                                                                View Fullscreen
+                                                            </Button>
+                                                        </>
+                                                    ) : (
+                                                        <Box sx={{ textAlign: 'center', py: 6 }}>
+                                                            <Description sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+                                                            <Typography variant="h6" color="text.secondary" gutterBottom>
+                                                                No Content Available
+                                                            </Typography>
+                                                            <Typography color="text.secondary" fontStyle="italic">
+                                                                The instructor hasn't added notes for this lecture yet.
+                                                            </Typography>
+                                                        </Box>
+                                                    )}
+
+                                                    <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            onClick={handleMarkAsCompleted}
+                                                            disabled={progress[activeLecture._id]}
+                                                            startIcon={<CheckCircle />}
+                                                            sx={{ borderRadius: 2 }}
+                                                        >
+                                                            {progress[activeLecture._id] ? 'Completed' : 'Mark as Completed'}
+                                                        </Button>
+                                                    </Box>
+                                                </Box>
+                                            )}
+
+                                            {/* Fullscreen Viewer with Anti-Screenshot Protection */}
+                                            {isFullscreen && (
+                                                <>
+                                                    {/* PDF Fullscreen Mode */}
+                                                    {activeLecture.pdfUrl ? (
+                                                        <PDFViewer
+                                                            pdfUrl={activeLecture.pdfUrl}
+                                                            lectureTitle={activeLecture.title}
+                                                            userName={userName}
+                                                            isFullscreenProp={true}
+                                                            onToggleFullscreen={setIsFullscreen}
+                                                        />
+                                                    ) : (
+                                                        /* Text Fullscreen Mode */
+                                                        <Box
+                                                            sx={{
+                                                                position: 'fixed',
+                                                                top: 0,
+                                                                left: 0,
+                                                                right: 0,
+                                                                bottom: 0,
+                                                                bgcolor: 'background.default',
+                                                                zIndex: 9999,
+                                                                overflow: 'hidden',
+                                                                userSelect: 'none',
+                                                                WebkitUserSelect: 'none',
+                                                            }}
+                                                            onContextMenu={(e) => e.preventDefault()}
+                                                        >
+                                                            {/* Watermark Overlay */}
+                                                            <Box
+                                                                sx={{
+                                                                    position: 'absolute',
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    right: 0,
+                                                                    bottom: 0,
+                                                                    pointerEvents: 'none',
+                                                                    opacity: 0.15,
+                                                                    zIndex: 10,
+                                                                    display: 'flex',
+                                                                    flexWrap: 'wrap',
+                                                                    alignContent: 'space-around',
+                                                                    justifyContent: 'space-around',
+                                                                    transform: 'rotate(-30deg)',
+                                                                }}
+                                                            >
+                                                                {Array.from({ length: 20 }).map((_, i) => (
+                                                                    <Typography
+                                                                        key={i}
+                                                                        sx={{
+                                                                            fontSize: '1.5rem',
+                                                                            fontWeight: 'bold',
+                                                                            color: 'text.primary',
+                                                                            whiteSpace: 'nowrap',
+                                                                        }}
+                                                                    >
+                                                                        {userName} - {new Date().toLocaleDateString()}
+                                                                    </Typography>
+                                                                ))}
+                                                            </Box>
+
+                                                            {/* Header */}
+                                                            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <Typography variant="h5" fontWeight="700">
+                                                                    {activeLecture.title}
+                                                                </Typography>
+                                                                <Button
+                                                                    variant="contained"
+                                                                    onClick={() => setIsFullscreen(false)}
+                                                                    startIcon={<FullscreenExit />}
+                                                                >
+                                                                    Exit Fullscreen
+                                                                </Button>
+                                                            </Box>
+
+                                                            {/* Content */}
+                                                            <Box
+                                                                sx={{
+                                                                    p: 4,
+                                                                    height: 'calc(100vh - 80px)',
+                                                                    overflowY: 'auto',
+                                                                    fontSize: '1.1rem',
+                                                                    lineHeight: 2,
+                                                                }}
+                                                            >
+                                                                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 2, fontSize: '1.1rem' }}>
+                                                                    {activeLecture.content}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Box>
+                                                    )}
+                                                </>
+                                            )}
+                                        </>
                                     )}
 
                                     {activeLecture.type === 'quiz' && (
                                         <Box sx={{ mt: 2 }}>
                                             {!quizState && (
-                                                <Box textAlign="center" py={4}>
-                                                    <Quiz sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                                                    <Typography variant="h6" gutterBottom>
-                                                        Quiz: {activeLecture.title}
+                                                <Paper variant="outlined" sx={{ p: 6, textAlign: 'center', borderRadius: 4, bgcolor: 'background.subtle' }}>
+                                                    <Quiz sx={{ fontSize: 80, color: 'primary.main', mb: 3 }} />
+                                                    <Typography variant="h5" fontWeight="700" gutterBottom>
+                                                        {activeLecture.title}
+                                                    </Typography>
+                                                    <Typography color="text.secondary" sx={{ mb: 4 }}>
+                                                        Test your knowledge with this quiz
                                                     </Typography>
                                                     <Button
                                                         variant="contained"
+                                                        size="large"
                                                         onClick={() => handleStartQuiz(activeLecture.content)}
+                                                        sx={{ borderRadius: 2, px: 4 }}
                                                     >
                                                         Start Quiz
                                                     </Button>
-                                                </Box>
+                                                </Paper>
                                             )}
 
                                             {quizState === 'taking' && activeLecture.quizData && (
-                                                <Box>
+                                                <Box sx={{ maxWidth: 800, mx: 'auto' }}>
                                                     {activeLecture.quizData.questions.map((q, index) => (
-                                                        <Box key={q._id} sx={{ mb: 4 }}>
-                                                            <Typography variant="subtitle1" gutterBottom>
-                                                                {index + 1}. {q.questionText}
+                                                        <Paper key={q._id} elevation={0} variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                                                            <Typography variant="subtitle1" fontWeight="600" gutterBottom sx={{ display: 'flex', gap: 1 }}>
+                                                                <Box component="span" sx={{ color: 'primary.main' }}>Q{index + 1}.</Box>
+                                                                {q.questionText}
                                                             </Typography>
-                                                            <FormControl component="fieldset">
+                                                            <FormControl component="fieldset" sx={{ width: '100%', mt: 1 }}>
                                                                 <RadioGroup
                                                                     value={quizAnswers[q._id] ?? ''}
                                                                     onChange={(e) => setQuizAnswers({
@@ -292,48 +538,74 @@ const CoursePlayer = () => {
                                                                             value={oIndex}
                                                                             control={<Radio />}
                                                                             label={opt}
+                                                                            sx={{
+                                                                                mb: 1,
+                                                                                p: 1,
+                                                                                borderRadius: 2,
+                                                                                border: '1px solid',
+                                                                                borderColor: quizAnswers[q._id] === oIndex ? 'primary.main' : 'transparent',
+                                                                                bgcolor: quizAnswers[q._id] === oIndex ? 'primary.soft' : 'transparent'
+                                                                            }}
                                                                         />
                                                                     ))}
                                                                 </RadioGroup>
                                                             </FormControl>
-                                                        </Box>
+                                                        </Paper>
                                                     ))}
                                                     <Button
                                                         variant="contained"
+                                                        size="large"
+                                                        fullWidth
                                                         onClick={handleQuizSubmit}
                                                         disabled={Object.keys(quizAnswers).length !== activeLecture.quizData.questions.length}
+                                                        sx={{ mt: 2, borderRadius: 2 }}
                                                     >
-                                                        Submit Quiz
+                                                        Submit Quiz Answers
                                                     </Button>
                                                 </Box>
                                             )}
 
                                             {quizState === 'result' && quizResult && (
-                                                <Box textAlign="center">
-                                                    <Alert severity={quizResult.data.attempt.passed ? 'success' : 'warning'} sx={{ mb: 2 }}>
-                                                        {quizResult.message}
-                                                    </Alert>
-                                                    <Typography variant="h4" gutterBottom>
+                                                <Paper elevation={0} variant="outlined" sx={{ p: 5, textAlign: 'center', borderRadius: 4 }}>
+                                                    <Box sx={{ mb: 3 }}>
+                                                        {quizResult.data.attempt.passed ?
+                                                            <EmojiEvents sx={{ fontSize: 80, color: 'success.main' }} /> :
+                                                            <Warning sx={{ fontSize: 80, color: 'warning.main' }} />
+                                                        }
+                                                    </Box>
+                                                    <Typography variant="h4" fontWeight="800" gutterBottom>
                                                         Score: {Math.round(quizResult.data.attempt.percentage)}%
                                                     </Typography>
-                                                    <Button variant="outlined" onClick={() => setQuizState(null)}>
-                                                        Back to Lecture
+                                                    <Alert
+                                                        severity={quizResult.data.attempt.passed ? 'success' : 'warning'}
+                                                        sx={{ mb: 4, justifyContent: 'center', borderRadius: 2 }}
+                                                    >
+                                                        {quizResult.message}
+                                                    </Alert>
+                                                    <Button
+                                                        variant="outlined"
+                                                        onClick={() => setQuizState(null)}
+                                                        sx={{ borderRadius: 2 }}
+                                                    >
+                                                        Review Lecture
                                                     </Button>
-                                                </Box>
+                                                </Paper>
                                             )}
                                         </Box>
                                     )}
 
-                                    <Box sx={{ mt: 3 }}>
+                                    <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
+                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>Description</Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            {activeLecture.description}
+                                            {activeLecture.description || 'No description available.'}
                                         </Typography>
                                     </Box>
                                 </>
                             ) : (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                    <Typography variant="h6" color="text.secondary">
-                                        Select a lecture to start learning
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column', opacity: 0.5 }}>
+                                    <PlayCircle sx={{ fontSize: 80, mb: 2 }} />
+                                    <Typography variant="h6">
+                                        Select a lecture from the sidebar to start learning
                                     </Typography>
                                 </Box>
                             )}
@@ -341,55 +613,85 @@ const CoursePlayer = () => {
                     </Grid>
 
                     {/* Sidebar - Curriculum */}
-                    <Grid item xs={12} md={4}>
-                        <Paper elevation={2}>
-                            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                    <Grid item xs={12} md={3}>
+                        <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, overflow: 'hidden' }}>
+                            <Box sx={{ p: 2, bgcolor: 'background.subtle', borderBottom: '1px solid', borderColor: 'divider' }}>
                                 <Typography variant="h6" fontWeight="700" gutterBottom>
-                                    Course Content
+                                    Curriculum
                                 </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <LinearProgress variant="determinate" value={courseProgress} sx={{ flexGrow: 1, height: 8, borderRadius: 4 }} />
-                                    <Typography variant="body2" fontWeight="600">{Math.round(courseProgress)}%</Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={courseProgress}
+                                        sx={{
+                                            flexGrow: 1,
+                                            height: 8,
+                                            borderRadius: 4,
+                                            bgcolor: 'background.paper',
+                                            '& .MuiLinearProgress-bar': { borderRadius: 4 }
+                                        }}
+                                    />
+                                    <Typography variant="body2" fontWeight="700">{Math.round(courseProgress)}%</Typography>
                                 </Box>
                             </Box>
-                            {course.modules.map((module, index) => (
-                                <Accordion key={module._id} defaultExpanded={index === 0} disableGutters elevation={0}>
-                                    <AccordionSummary expandIcon={<ExpandMore />}>
-                                        <Typography variant="subtitle1" fontWeight="600">
-                                            Module {index + 1}: {module.title}
-                                        </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails sx={{ p: 0 }}>
-                                        <List disablePadding>
-                                            {module.lectures.map((lecture) => (
-                                                <ListItem
-                                                    key={lecture._id}
-                                                    button
-                                                    selected={activeLecture?._id === lecture._id}
-                                                    onClick={() => handleLectureClick(lecture)}
-                                                    sx={{ pl: 4 }}
-                                                >
-                                                    <ListItemIcon sx={{ minWidth: 40 }}>
-                                                        {lecture.type === 'video' && <PlayCircle fontSize="small" color={progress[lecture._id] ? 'success' : 'inherit'} />}
-                                                        {lecture.type === 'text' && <Description fontSize="small" color={progress[lecture._id] ? 'success' : 'inherit'} />}
-                                                        {lecture.type === 'quiz' && <Quiz fontSize="small" color={progress[lecture._id] ? 'success' : 'inherit'} />}
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={lecture.title}
-                                                        primaryTypographyProps={{ variant: 'body2' }}
-                                                    />
-                                                    {progress[lecture._id] && <CheckCircle fontSize="small" color="success" />}
-                                                </ListItem>
-                                            ))}
-                                        </List>
-                                    </AccordionDetails>
-                                </Accordion>
-                            ))}
+                            <Box sx={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                                {course.modules?.map((module, index) => (
+                                    <Accordion
+                                        key={module._id}
+                                        defaultExpanded={index === 0}
+                                        disableGutters
+                                        elevation={0}
+                                        sx={{
+                                            '&:before': { display: 'none' },
+                                            borderBottom: '1px solid',
+                                            borderColor: 'divider'
+                                        }}
+                                    >
+                                        <AccordionSummary expandIcon={<ExpandMore />} sx={{ px: 2, bgcolor: 'background.paper' }}>
+                                            <Typography variant="subtitle2" fontWeight="700" sx={{ color: 'text.secondary' }}>
+                                                MODULE {index + 1}: {module.title}
+                                            </Typography>
+                                        </AccordionSummary>
+                                        <AccordionDetails sx={{ p: 0 }}>
+                                            <List disablePadding>
+                                                {module.lectures.map((lecture) => (
+                                                    <ListItem
+                                                        key={lecture._id}
+                                                        button
+                                                        selected={activeLecture?._id === lecture._id}
+                                                        onClick={() => handleLectureClick(lecture)}
+                                                        sx={{
+                                                            pl: 3,
+                                                            py: 1.5,
+                                                            borderLeft: activeLecture?._id === lecture._id ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent',
+                                                            bgcolor: activeLecture?._id === lecture._id ? 'action.hover' : 'transparent'
+                                                        }}
+                                                    >
+                                                        <ListItemIcon sx={{ minWidth: 36 }}>
+                                                            {lecture.type === 'video' && <PlayCircle fontSize="small" color={progress[lecture._id] ? 'success' : activeLecture?._id === lecture._id ? 'primary' : 'inherit'} />}
+                                                            {lecture.type === 'text' && <Description fontSize="small" color={progress[lecture._id] ? 'success' : activeLecture?._id === lecture._id ? 'primary' : 'inherit'} />}
+                                                            {lecture.type === 'quiz' && <Quiz fontSize="small" color={progress[lecture._id] ? 'success' : activeLecture?._id === lecture._id ? 'primary' : 'inherit'} />}
+                                                        </ListItemIcon>
+                                                        <ListItemText
+                                                            primary={lecture.title}
+                                                            primaryTypographyProps={{
+                                                                variant: 'body2',
+                                                                fontWeight: activeLecture?._id === lecture._id ? 700 : 500,
+                                                                color: activeLecture?._id === lecture._id ? 'text.primary' : 'text.secondary'
+                                                            }}
+                                                        />
+                                                    </ListItem>
+                                                ))}
+                                            </List>
+                                        </AccordionDetails>
+                                    </Accordion>
+                                ))}
+                            </Box>
                         </Paper>
                     </Grid>
                 </Grid>
-            </Container>
-        </Box>
+            </Container >
+        </Box >
     );
 };
 

@@ -43,6 +43,7 @@ import {
     Person,
     Email,
     Image,
+    PictureAsPdf,
 } from '@mui/icons-material';
 import Navbar from '../../components/common/Navbar';
 import QuizCreator from '../../components/teacher/QuizCreator';
@@ -62,6 +63,8 @@ const ManageCourse = () => {
     const [openLectureDialog, setOpenLectureDialog] = useState(false);
     const [openQuizDialog, setOpenQuizDialog] = useState(false);
     const [currentModuleId, setCurrentModuleId] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingLectureId, setEditingLectureId] = useState(null);
 
     // Form states
     const [moduleForm, setModuleForm] = useState({ title: '', description: '' });
@@ -73,6 +76,7 @@ const ManageCourse = () => {
         videoUrl: '',
     });
     const [videoFile, setVideoFile] = useState(null);
+    const [pdfFile, setPdfFile] = useState(null);
     const [uploading, setUploading] = useState(false);
 
     // Settings Form State
@@ -147,15 +151,23 @@ const ManageCourse = () => {
 
     const handleAddLecture = async () => {
         try {
+            if (lectureForm.type === 'video' && !videoFile && !isEditing) {
+                alert('Please upload a video file');
+                return;
+            }
+
             setUploading(true);
             let videoData = {};
+            let pdfData = {};
 
+            // Handle video upload
             if (lectureForm.type === 'video' && videoFile) {
                 const formData = new FormData();
                 formData.append('video', videoFile);
                 const uploadRes = await api.post('/courses/upload/video', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
+                console.log('Video upload response:', uploadRes.data);
                 videoData = {
                     videoUrl: uploadRes.data.data.videoUrl,
                     videoPublicId: uploadRes.data.data.videoPublicId,
@@ -163,21 +175,51 @@ const ManageCourse = () => {
                 };
             }
 
-            await api.post(`/courses/${id}/modules/${currentModuleId}/lectures`, {
-                ...lectureForm,
-                ...videoData,
-            });
+            // Handle PDF upload for text lectures
+            if (lectureForm.type === 'text' && pdfFile) {
+                const formData = new FormData();
+                formData.append('pdf', pdfFile);
+                const uploadRes = await api.post('/courses/upload/pdf', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+                console.log('PDF upload response:', uploadRes.data);
+                pdfData = {
+                    pdfUrl: uploadRes.data.data.pdfUrl,
+                    pdfPublicId: uploadRes.data.data.pdfPublicId,
+                };
+            }
+
+            console.log('Sending lecture data:', { ...lectureForm, ...videoData, ...pdfData, isEditing });
+
+            if (isEditing) {
+                await api.put(`/courses/${id}/modules/${currentModuleId}/lectures/${editingLectureId}`, {
+                    ...lectureForm,
+                    ...videoData,
+                    ...pdfData,
+                });
+            } else {
+                await api.post(`/courses/${id}/modules/${currentModuleId}/lectures`, {
+                    ...lectureForm,
+                    ...videoData,
+                    ...pdfData,
+                });
+            }
 
             setOpenLectureDialog(false);
             setLectureForm({ title: '', description: '', type: 'video', content: '', videoUrl: '' });
             setVideoFile(null);
+            setPdfFile(null);
+            setIsEditing(false);
+            setEditingLectureId(null);
             fetchCourse();
         } catch (error) {
-            console.error('Error adding lecture:', error);
+            console.error('Error saving lecture:', error);
+            alert(`Error saving lecture: ${error.response?.data?.message || error.message}`);
         } finally {
             setUploading(false);
         }
     };
+
 
     const handleTogglePublish = async () => {
         try {
@@ -199,7 +241,13 @@ const ManageCourse = () => {
                 const uploadRes = await api.post('/courses/upload/thumbnail', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
-                thumbnailUrl = uploadRes.data.data;
+                console.log('Thumbnail upload response:', uploadRes.data);
+                // Handle both object and potential direct string or fallback
+                thumbnailUrl = uploadRes.data.data.thumbnailUrl || uploadRes.data.data || '';
+                if (typeof thumbnailUrl === 'object') {
+                    console.error('Thumbnail URL is an object!', thumbnailUrl);
+                    alert('Error: returned thumbnail is an object, check console');
+                }
                 setUploadingThumbnail(false);
             }
 
@@ -290,7 +338,30 @@ const ManageCourse = () => {
                                         <AccordionDetails>
                                             <List>
                                                 {module.lectures.map((lecture) => (
-                                                    <ListItem key={lecture._id} sx={{ bgcolor: 'background.paper', mb: 1, borderRadius: 1 }}>
+                                                    <ListItem
+                                                        key={lecture._id}
+                                                        sx={{ bgcolor: 'background.paper', mb: 1, borderRadius: 1 }}
+                                                        secondaryAction={
+                                                            <IconButton
+                                                                edge="end"
+                                                                onClick={() => {
+                                                                    setCurrentModuleId(module._id);
+                                                                    setEditingLectureId(lecture._id);
+                                                                    setIsEditing(true);
+                                                                    setLectureForm({
+                                                                        title: lecture.title,
+                                                                        description: lecture.description,
+                                                                        type: lecture.type,
+                                                                        content: lecture.content,
+                                                                        videoUrl: lecture.videoUrl
+                                                                    });
+                                                                    setOpenLectureDialog(true);
+                                                                }}
+                                                            >
+                                                                <Edit />
+                                                            </IconButton>
+                                                        }
+                                                    >
                                                         <Box sx={{ mr: 2 }}>
                                                             {lecture.type === 'video' && <VideoLibrary color="primary" />}
                                                             {lecture.type === 'text' && <Description color="secondary" />}
@@ -308,6 +379,10 @@ const ManageCourse = () => {
                                                 size="small"
                                                 onClick={() => {
                                                     setCurrentModuleId(module._id);
+                                                    setEditingLectureId(null);
+                                                    setIsEditing(false);
+                                                    setLectureForm({ title: '', description: '', type: 'video', content: '', videoUrl: '' });
+                                                    setVideoFile(null);
                                                     setOpenLectureDialog(true);
                                                 }}
                                                 sx={{ mt: 1, mr: 1 }}
@@ -526,8 +601,19 @@ const ManageCourse = () => {
                 </Dialog>
 
                 {/* Add Lecture Dialog */}
-                <Dialog open={openLectureDialog} onClose={() => setOpenLectureDialog(false)} maxWidth="md" fullWidth>
-                    <DialogTitle>Add Content</DialogTitle>
+                <Dialog
+                    open={openLectureDialog}
+                    onClose={() => {
+                        setOpenLectureDialog(false);
+                        setIsEditing(false);
+                        setEditingLectureId(null);
+                        setLectureForm({ title: '', description: '', type: 'video', content: '', videoUrl: '' });
+                        setVideoFile(null);
+                    }}
+                    maxWidth="md"
+                    fullWidth
+                >
+                    <DialogTitle>{isEditing ? 'Edit Content' : 'Add Content'}</DialogTitle>
                     <DialogContent>
                         <TextField
                             select
@@ -579,25 +665,65 @@ const ManageCourse = () => {
                         )}
 
                         {lectureForm.type === 'text' && (
-                            <TextField
-                                label="Content"
-                                fullWidth
-                                multiline
-                                rows={6}
-                                margin="normal"
-                                value={lectureForm.content}
-                                onChange={(e) => setLectureForm({ ...lectureForm, content: e.target.value })}
-                            />
+                            <>
+                                <TextField
+                                    label="Text Content/Notes"
+                                    fullWidth
+                                    multiline
+                                    rows={6}
+                                    margin="normal"
+                                    value={lectureForm.content}
+                                    onChange={(e) => setLectureForm({ ...lectureForm, content: e.target.value })}
+                                    placeholder="Enter text notes here..."
+                                />
+
+                                <Box sx={{ mt: 2, border: '1px dashed grey', p: 3, textAlign: 'center' }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                        Or upload a PDF document
+                                    </Typography>
+                                    <input
+                                        accept=".pdf,.docx"
+                                        style={{ display: 'none' }}
+                                        id="pdf-upload"
+                                        type="file"
+                                        onChange={(e) => setPdfFile(e.target.files[0])}
+                                    />
+                                    <label htmlFor="pdf-upload">
+                                        <Button variant="outlined" component="span" startIcon={<PictureAsPdf />}>
+                                            Upload PDF/DOCX
+                                        </Button>
+                                    </label>
+                                    {pdfFile && (
+                                        <Box sx={{ mt: 2 }}>
+                                            <Chip
+                                                label={pdfFile.name}
+                                                onDelete={() => setPdfFile(null)}
+                                                color="primary"
+                                                icon={<PictureAsPdf />}
+                                            />
+                                            <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                                                Size: {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                </Box>
+                            </>
                         )}
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => setOpenLectureDialog(false)}>Cancel</Button>
+                        <Button onClick={() => {
+                            setOpenLectureDialog(false);
+                            setIsEditing(false);
+                            setEditingLectureId(null);
+                            setLectureForm({ title: '', description: '', type: 'video', content: '', videoUrl: '' });
+                            setVideoFile(null);
+                        }}>Cancel</Button>
                         <Button
                             onClick={handleAddLecture}
                             variant="contained"
                             disabled={uploading}
                         >
-                            {uploading ? 'Uploading...' : 'Add Content'}
+                            {uploading ? 'Uploading...' : (isEditing ? 'Update Content' : 'Add Content')}
                         </Button>
                     </DialogActions>
                 </Dialog>

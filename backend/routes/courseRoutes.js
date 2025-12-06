@@ -11,7 +11,9 @@ const {
     addLecture,
     uploadVideo,
     uploadThumbnail,
+    uploadPDF,
     togglePublish,
+    updateLecture,
 } = require('../controllers/courseController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const upload = require('../config/multer');
@@ -29,10 +31,12 @@ router.delete('/:id', protect, authorize('teacher', 'admin'), deleteCourse);
 // Module and lecture management
 router.post('/:id/modules', protect, authorize('teacher', 'admin'), addModule);
 router.post('/:courseId/modules/:moduleId/lectures', protect, authorize('teacher', 'admin'), addLecture);
+router.put('/:courseId/modules/:moduleId/lectures/:lectureId', protect, authorize('teacher', 'admin'), updateLecture);
 
 // File uploads
 router.post('/upload/video', protect, authorize('teacher', 'admin'), upload.single('video'), uploadVideo);
 router.post('/upload/thumbnail', protect, authorize('teacher', 'admin'), upload.single('thumbnail'), uploadThumbnail);
+router.post('/upload/pdf', protect, authorize('teacher', 'admin'), upload.single('pdf'), uploadPDF);
 
 // Publish/Unpublish
 router.put('/:id/publish', protect, authorize('teacher', 'admin'), togglePublish);
