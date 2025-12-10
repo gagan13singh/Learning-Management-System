@@ -4,7 +4,8 @@ import {
     Schedule,
     Forum,
     Analytics,
-    MenuBook
+    MenuBook,
+    PlaylistAddCheck
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,11 +13,12 @@ const QuickActionsMenu = () => {
     const navigate = useNavigate();
 
     const actions = [
+        { icon: <PlaylistAddCheck />, name: 'To-Do List', path: '/student/todos' },
         { icon: <MenuBook />, name: 'Browse Courses', path: '/student/courses' },
-        { icon: <Analytics />, name: 'Performance', path: '/student/performance' }, // TODO: Create page
-        { icon: <Forum />, name: 'Doubts', path: '/student/doubts' }, // TODO: Create page
-        { icon: <Schedule />, name: 'Schedule', path: '/student/schedule' }, // TODO: Create page
-        { icon: <Assignment />, name: 'Assignments', path: '/student/assignments' }, // TODO: Create page
+        { icon: <Analytics />, name: 'Performance', path: '/student/performance' },
+        // { icon: <Forum />, name: 'Doubts', path: '/student/doubts' }, 
+        { icon: <Schedule />, name: 'Exams & Schedule', path: '/student/tests' },
+        { icon: <Assignment />, name: 'Assignments', path: '/student/assignments' },
     ];
 
     return (

@@ -66,6 +66,7 @@ import {
     Cell
 } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 
 // Mock Data
 const attendanceData = [
@@ -91,32 +92,91 @@ const COLORS = ['#10B981', '#F59E0B'];
 
 const Profile = () => {
     const theme = useTheme();
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [tabValue, setTabValue] = useState(0);
     const [editOpen, setEditOpen] = useState(false);
     const [passwordOpen, setPasswordOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Edit Profile State
     const [profileData, setProfileData] = useState({
-        name: user?.name || 'John Doe',
-        email: user?.email || 'john@example.com',
-        phone: user?.phone || '+91 98765 43210',
-        bio: user?.bio || 'Passionate educator with 5+ years of experience.',
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
+        bio: user?.bio || '',
     });
+
+    // Password State
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+
+    React.useEffect(() => {
+        if (user) {
+            setProfileData({
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                bio: user.bio || '',
+            });
+        }
+    }, [user]);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
     };
 
-    const handleEditSave = () => {
-        // Implement save logic
-        setEditOpen(false);
+    const handleEditSave = async () => {
+        try {
+            setLoading(true);
+            const response = await api.put('/auth/profile', {
+                name: profileData.name,
+                phone: profileData.phone,
+                bio: profileData.bio
+            });
+
+            if (response.data.success) {
+                updateUser(response.data.data);
+                setEditOpen(false);
+                // Optional: show snackbar
+            }
+        } catch (error) {
+            console.error('Update profile error:', error);
+            alert(error.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handlePasswordSave = () => {
-        // Implement password change logic
-        setPasswordOpen(false);
+    const handlePasswordSave = async () => {
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            alert("New passwords don't match");
+            return;
+        }
+        if (passwordData.newPassword.length < 6) {
+            alert("Password must be at least 6 characters");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await api.put('/auth/change-password', {
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword
+            });
+
+            setPasswordOpen(false);
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            alert('Password changed successfully!');
+        } catch (error) {
+            console.error('Change password error:', error);
+            alert(error.response?.data?.message || 'Failed to change password');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const TabPanel = ({ children, value, index }) => (
@@ -127,7 +187,7 @@ const Profile = () => {
 
     return (
         <Box sx={{ minHeight: '100vh', pb: 8 }}>
-            {/* (A) Top Profile Header */}
+            {/* Top Profile Header */}
             <Box sx={{
                 background: theme.palette.gradients.primary,
                 pt: 8,
@@ -210,10 +270,8 @@ const Profile = () => {
 
             <Container maxWidth="lg" sx={{ mt: 4 }}>
                 <Grid container spacing={4}>
-                    {/* (B) Detailed Information Cards (Left Column) */}
                     <Grid item xs={12} md={4}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            {/* Personal Info */}
                             <Card className="glass-card">
                                 <CardContent>
                                     <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -237,7 +295,6 @@ const Profile = () => {
                                 </CardContent>
                             </Card>
 
-                            {/* Professional Info (Teacher) */}
                             {user?.role === 'teacher' && (
                                 <Card className="glass-card">
                                     <CardContent>
@@ -266,7 +323,6 @@ const Profile = () => {
                                 </Card>
                             )}
 
-                            {/* Quick Actions Panel */}
                             <Card sx={{ background: theme.palette.gradients.secondary, color: 'white' }}>
                                 <CardContent>
                                     <Typography variant="h6" fontWeight="bold" gutterBottom>Quick Actions</Typography>
@@ -289,7 +345,6 @@ const Profile = () => {
                         </Box>
                     </Grid>
 
-                    {/* (C) Activity / Performance Section (Right Column) */}
                     <Grid item xs={12} md={8}>
                         <Card className="glass-card" sx={{ minHeight: 600 }}>
                             <CardContent>
@@ -308,10 +363,8 @@ const Profile = () => {
                                     <Tab label="Security" icon={<Lock />} iconPosition="start" />
                                 </Tabs>
 
-                                {/* Overview Tab */}
                                 <TabPanel value={tabValue} index={0}>
                                     <Grid container spacing={3}>
-                                        {/* Smart Insights */}
                                         <Grid item xs={12}>
                                             <Typography variant="h6" fontWeight="bold" gutterBottom>Smart Insights</Typography>
                                             <Grid container spacing={2}>
@@ -339,7 +392,6 @@ const Profile = () => {
                                             </Grid>
                                         </Grid>
 
-                                        {/* Attendance Trend */}
                                         <Grid item xs={12} md={6}>
                                             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Attendance Trend (30 Days)</Typography>
                                             <Box sx={{ height: 250, width: '100%' }}>
@@ -355,7 +407,6 @@ const Profile = () => {
                                             </Box>
                                         </Grid>
 
-                                        {/* Test Performance */}
                                         <Grid item xs={12} md={6}>
                                             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Recent Test Performance</Typography>
                                             <Box sx={{ height: 250, width: '100%' }}>
@@ -373,7 +424,6 @@ const Profile = () => {
                                     </Grid>
                                 </TabPanel>
 
-                                {/* Other Tabs (Placeholders for now) */}
                                 <TabPanel value={tabValue} index={1}>
                                     <Typography variant="body1" color="text.secondary">Detailed attendance logs will appear here.</Typography>
                                 </TabPanel>
@@ -458,8 +508,8 @@ const Profile = () => {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-                    <Button variant="contained" onClick={handleEditSave}>Save Changes</Button>
+                    <Button onClick={() => setEditOpen(false)} disabled={loading}>Cancel</Button>
+                    <Button variant="contained" onClick={handleEditSave} disabled={loading}>Save Changes</Button>
                 </DialogActions>
             </Dialog>
 
@@ -472,6 +522,8 @@ const Profile = () => {
                             label="Current Password"
                             type={showPassword ? 'text' : 'password'}
                             fullWidth
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
@@ -486,17 +538,21 @@ const Profile = () => {
                             label="New Password"
                             type={showPassword ? 'text' : 'password'}
                             fullWidth
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                         />
                         <TextField
                             label="Confirm New Password"
                             type={showPassword ? 'text' : 'password'}
                             fullWidth
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                         />
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setPasswordOpen(false)}>Cancel</Button>
-                    <Button variant="contained" onClick={handlePasswordSave}>Update Password</Button>
+                    <Button onClick={() => setPasswordOpen(false)} disabled={loading}>Cancel</Button>
+                    <Button variant="contained" onClick={handlePasswordSave} disabled={loading}>Update Password</Button>
                 </DialogActions>
             </Dialog>
         </Box>

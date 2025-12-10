@@ -128,6 +128,8 @@ exports.getEnrollment = async (req, res) => {
 // @access  Private (Student)
 exports.updateProgress = async (req, res) => {
     try {
+        console.log('updateProgress called with:', req.body);
+        console.log('User:', req.user);
         const { courseId, moduleId, lectureId, watchTime, lastWatchedPosition, duration } = req.body;
 
         // Calculate completion percentage

@@ -12,7 +12,6 @@ import {
 import { Download, ArrowBack, Verified } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import Navbar from '../../components/common/Navbar';
 import api from '../../utils/api';
 
 const CertificateView = () => {
@@ -81,7 +80,6 @@ const CertificateView = () => {
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-            <Navbar />
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
                     <Button

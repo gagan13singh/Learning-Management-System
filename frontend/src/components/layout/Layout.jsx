@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Drawer, List, ListItem, ListItemIcon, ListItemText,
-    Typography, IconButton, Avatar, useTheme, AppBar, Toolbar, Tooltip
+    Typography, IconButton, Avatar, useTheme, AppBar, Toolbar, Tooltip, Divider
 } from '@mui/material';
 import {
     Dashboard, Class, EventAvailable, Insights,
     Menu, Logout, Settings, Person, Quiz, ChevronLeft, ChevronRight,
-    Brightness4, Brightness7, People, School, Assignment, CheckCircle
+    Brightness4, Brightness7, People, School, Assignment, CheckCircle,
+    CalendarToday, Help, PlaylistAddCheck
 } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useColorMode } from '../../context/ThemeContext';
@@ -19,7 +20,7 @@ const collapsedDrawerWidth = 80;
 const Layout = () => {
     const theme = useTheme();
     const { toggleColorMode, mode } = useColorMode();
-    const { logout } = useAuth();
+    const { user, logout } = useAuth(); // Destructure user
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,7 +46,7 @@ const Layout = () => {
         setCollapsed(!collapsed);
     };
 
-    const menuItems = [
+    const teacherMenuItems = [
         { text: 'Dashboard', icon: <Dashboard />, path: '/teacher/dashboard' },
         { text: 'Courses', icon: <School />, path: '/teacher/courses' },
         { text: 'Batches', icon: <People />, path: '/teacher/batches' },
@@ -54,6 +55,20 @@ const Layout = () => {
         { text: 'Insights', icon: <Insights />, path: '/teacher/insights' },
         { text: 'Profile', icon: <Person />, path: '/teacher/profile' },
     ];
+
+    const studentMenuItems = [
+        { text: 'Dashboard', icon: <Dashboard />, path: '/student/dashboard' },
+        { text: 'My Courses', icon: <School />, path: '/student/courses' },
+        { text: 'Assignments', icon: <Assignment />, path: '/student/assignments' },
+        { text: 'Tests', icon: <Quiz />, path: '/student/tests' },
+        { text: 'To-Do List', icon: <PlaylistAddCheck />, path: '/student/todos' },
+        { text: 'Calendar', icon: <CalendarToday />, path: '/student/calendar' },
+        { text: 'Attendance', icon: <CheckCircle />, path: '/student/attendance' },
+        { text: 'Profile', icon: <Person />, path: '/profile' },
+        { text: 'Support/Help', icon: <Help />, path: '/support' },
+    ];
+
+    const menuItems = user?.role === 'student' ? studentMenuItems : teacherMenuItems;
 
     const drawerContent = (
         <Box sx={{
@@ -75,7 +90,7 @@ const Layout = () => {
                 <Avatar sx={{ bgcolor: theme.palette.primary.main, width: collapsed ? 32 : 40, height: collapsed ? 32 : 40 }}>T</Avatar>
                 {!collapsed && (
                     <Typography variant="h6" fontWeight="bold" sx={{ background: theme.palette.gradients.primary, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>
-                        Coaching LMS
+                        EduSync
                     </Typography>
                 )}
             </Box>
@@ -168,7 +183,7 @@ const Layout = () => {
                         <Menu />
                     </IconButton>
                     <Typography variant="h6" noWrap component="h1" fontWeight="bold" sx={{ flexGrow: 1, background: theme.palette.gradients.primary, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Coaching LMS
+                        EduSync
                     </Typography>
                     <NotificationBell />
                 </Toolbar>

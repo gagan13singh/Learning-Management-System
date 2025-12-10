@@ -57,6 +57,9 @@ app.use('/api/assignments', require('./routes/assignmentRoutes'));
 app.use('/api/tests', require('./routes/testRoutes'));
 app.use('/api/attendance', require('./routes/attendanceRoutes'));
 app.use('/api/announcements', require('./routes/announcementRoutes'));
+app.use('/api/todos', require('./routes/todoRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

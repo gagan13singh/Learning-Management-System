@@ -20,9 +20,11 @@ import {
     ArrowForward
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 
 const AnnouncementsWidget = () => {
+    const navigate = useNavigate();
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -58,7 +60,12 @@ const AnnouncementsWidget = () => {
                     <Campaign sx={{ color: 'primary.main' }} />
                     Announcements
                 </Typography>
-                <Button endIcon={<ArrowForward />} size="small" sx={{ borderRadius: 2 }}>
+                <Button
+                    endIcon={<ArrowForward />}
+                    size="small"
+                    sx={{ borderRadius: 2 }}
+                    onClick={() => navigate('/student/announcements')}
+                >
                     View All
                 </Button>
             </Box>

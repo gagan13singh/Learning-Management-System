@@ -69,6 +69,54 @@ exports.getCourseAssignments = async (req, res) => {
     }
 };
 
+// @desc    Get all my assignments (pending, submitted, graded)
+// @route   GET /api/assignments/my-assignments
+// @access  Private (Student)
+exports.getMyAssignments = async (req, res) => {
+    try {
+        const Enrollment = require('../models/Enrollment');
+        const enrollments = await Enrollment.find({ student: req.user.id, status: 'active' });
+        const courseIds = enrollments.map(e => e.course);
+
+        // Find assignments for these courses
+        const assignments = await Assignment.find({
+            course: { $in: courseIds }
+        })
+            .populate('course', 'title')
+            .sort({ dueDate: 1 });
+
+        // Find student's submissions
+        const submissions = await AssignmentSubmission.find({
+            student: req.user.id,
+            assignment: { $in: assignments.map(a => a._id) }
+        });
+
+        // Map status
+        const assignmentsWithStatus = assignments.map(assignment => {
+            const submission = submissions.find(s => s.assignment.toString() === assignment._id.toString());
+            let status = 'pending';
+            if (submission) {
+                status = submission.status || 'submitted';
+            } else if (new Date(assignment.dueDate) < new Date()) {
+                status = 'overdue';
+            }
+
+            return {
+                ...assignment.toObject(),
+                status,
+                submission
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            data: assignmentsWithStatus
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // @desc    Get student's pending assignments
 // @route   GET /api/assignments/my-pending
 // @access  Private (Student)

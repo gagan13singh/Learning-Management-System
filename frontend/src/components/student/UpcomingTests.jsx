@@ -14,15 +14,22 @@ import {
     CalendarMonth
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 
 const UpcomingTests = () => {
+    const navigate = useNavigate();
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTests = async () => {
             try {
+                // Ensure this endpoint exists or use /api/tests with filtering if needed. 
+                // Previously in testController we checked getUpcomingTests but defined route might differ.
+                // Assuming /api/tests/upcoming exists or using query params.
+                // Actually testController had getUpcomingTests, let's verify route if needed. 
+                // Using existing endpoint '/tests/upcoming' from the file.
                 const response = await api.get('/tests/upcoming');
                 setTests(response.data.data);
             } catch (error) {
@@ -116,6 +123,7 @@ const UpcomingTests = () => {
                                 size="small"
                                 fullWidth
                                 sx={{ borderRadius: 2, fontSize: '0.75rem', py: 0.5 }}
+                                onClick={() => navigate('/student/tests')}
                             >
                                 View Details
                             </Button>
@@ -130,6 +138,7 @@ const UpcomingTests = () => {
                     color="secondary"
                     endIcon={<ArrowForward />}
                     sx={{ borderRadius: 3 }}
+                    onClick={() => navigate('/student/tests')}
                 >
                     View All Schedule
                 </Button>

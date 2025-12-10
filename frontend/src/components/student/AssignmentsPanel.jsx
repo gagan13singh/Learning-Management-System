@@ -21,9 +21,11 @@ import {
     ArrowForward
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 
 const AssignmentsPanel = () => {
+    const navigate = useNavigate();
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -122,6 +124,7 @@ const AssignmentsPanel = () => {
                                                     size="small"
                                                     variant="outlined"
                                                     sx={{ borderRadius: 2, textTransform: 'none', py: 0.2, fontSize: '0.75rem' }}
+                                                    onClick={() => navigate('/student/assignments')}
                                                 >
                                                     Submit Now
                                                 </Button>
@@ -139,6 +142,7 @@ const AssignmentsPanel = () => {
                         fullWidth
                         endIcon={<ArrowForward />}
                         sx={{ borderRadius: 3, py: 1, color: 'text.secondary' }}
+                        onClick={() => navigate('/student/assignments')}
                     >
                         View All Assignments
                     </Button>

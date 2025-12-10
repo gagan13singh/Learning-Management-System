@@ -16,7 +16,6 @@ import {
     Alert,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
-import Navbar from '../../components/common/Navbar';
 import CourseCard from '../../components/common/CourseCard';
 import api from '../../utils/api';
 
@@ -77,7 +76,6 @@ const CourseBrowser = () => {
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-            <Navbar />
 
             <Container maxWidth="xl" sx={{ py: 4 }}>
                 {/* Header */}

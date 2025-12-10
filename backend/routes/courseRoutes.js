@@ -20,13 +20,15 @@ const upload = require('../config/multer');
 
 // Public routes
 router.get('/', getAllCourses);
-router.get('/:id', getCourse);
 
 // Teacher routes
 router.post('/', protect, authorize('teacher', 'admin'), createCourse);
 router.get('/teacher/my-courses', protect, authorize('teacher', 'admin'), getMyCourses);
 router.put('/:id', protect, authorize('teacher', 'admin'), updateCourse);
 router.delete('/:id', protect, authorize('teacher', 'admin'), deleteCourse);
+
+// Get single course (Public) - Moved after specific routes to prevent conflicts
+router.get('/:id', getCourse);
 
 // Module and lecture management
 router.post('/:id/modules', protect, authorize('teacher', 'admin'), addModule);

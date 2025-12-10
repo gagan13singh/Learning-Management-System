@@ -15,6 +15,14 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import CourseBrowser from './pages/student/CourseBrowser';
 import CoursePlayer from './pages/student/CoursePlayer';
 import CertificateView from './pages/student/CertificateView';
+import StudentAssignments from './pages/student/StudentAssignments';
+import StudentTests from './pages/student/StudentTests';
+import StudentAttendance from './pages/student/StudentAttendance';
+import StudentAnnouncements from './pages/student/StudentAnnouncements';
+import StudentPerformance from './pages/student/StudentPerformance';
+import StudentTodos from './pages/student/StudentTodos';
+import StudentCalendar from './pages/student/StudentCalendar';
+import Support from './pages/Support';
 
 // Teacher pages
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -40,39 +48,21 @@ function App() {
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
 
-                            {/* Student routes */}
-                            <Route
-                                path="/student/dashboard"
-                                element={
-                                    <ProtectedRoute allowedRoles={['student']}>
-                                        <StudentDashboard />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="/student/courses"
-                                element={
-                                    <ProtectedRoute allowedRoles={['student']}>
-                                        <CourseBrowser />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="/student/course/:id"
-                                element={
-                                    <ProtectedRoute allowedRoles={['student']}>
-                                        <CoursePlayer />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="/certificate/:id"
-                                element={
-                                    <ProtectedRoute allowedRoles={['student']}>
-                                        <CertificateView />
-                                    </ProtectedRoute>
-                                }
-                            />
+                            {/* Student routes with Layout */}
+                            <Route element={<ProtectedRoute allowedRoles={['student']}><Layout /></ProtectedRoute>}>
+                                <Route path="/student/dashboard" element={<StudentDashboard />} />
+                                <Route path="/student/courses" element={<CourseBrowser />} />
+                                <Route path="/student/course/:id" element={<CoursePlayer />} />
+                                <Route path="/certificate/:id" element={<CertificateView />} />
+                                <Route path="/student/assignments" element={<StudentAssignments />} />
+                                <Route path="/student/tests" element={<StudentTests />} />
+                                <Route path="/student/performance" element={<StudentPerformance />} />
+                                <Route path="/student/announcements" element={<StudentAnnouncements />} />
+                                <Route path="/student/attendance" element={<StudentAttendance />} />
+                                <Route path="/student/todos" element={<StudentTodos />} />
+                                <Route path="/student/calendar" element={<StudentCalendar />} />
+                                <Route path="/support" element={<Support />} />
+                            </Route>
 
                             {/* Teacher routes with Layout */}
                             <Route element={<ProtectedRoute allowedRoles={['teacher']}><Layout /></ProtectedRoute>}>
