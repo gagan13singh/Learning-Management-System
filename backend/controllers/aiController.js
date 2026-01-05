@@ -43,30 +43,31 @@ const generateStudyPlan = async (req, res) => {
 
         const prompt = `
             You are an expert AI Study Planner.
-            Create a realistic, adaptive 5-day study plan for a student based on the following schedule:
+            Create a realistic, adaptive 3-day study plan for a student based on the following schedule:
             ${JSON.stringify(dataContext)}
 
             Rules:
-            1. Prioritize upcoming Tests (within 2-3 days).
-            2. Break down Test syllabi into smaller "Revise [Topic]" tasks.
-            3. Include "Practice" sessions for numerical subjects.
-            4. Mix Assigment work with Study sessions.
-            5. Output STRICTLY VALID JSON in the following format:
+            1. Prioritize upcoming Tests.
+            2. Break down syllabi into small tasks.
+            3. Keep descriptions concise (< 10 words).
+            4. Output STRICTLY VALID JSON in the following format:
             [
                 {
-                    "day": "Monday, 12th Dec",
-                    "focus": "Maths & Physics",
+                    "day": "Monday",
+                    "focus": "Maths",
                     "tasks": [
-                        { "time": "20 mins", "activity": "Revise Integration formulas" },
-                        { "time": "40 mins", "activity": "Solve 5 problems on Thermodynamics" }
+                        { "time": "20m", "activity": "Revise Integration" }
                     ]
                 }
             ]
-            Do not include markdown or explanations outside the JSON.
+            Do not include markdown.
         `;
 
         // 3. Call Gemini
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: { maxOutputTokens: 2000 }
+        });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
@@ -101,8 +102,8 @@ const generatePracticeQuiz = async (req, res) => {
             Generate a personalized practice quiz for a student on the topic: "${topic}" ${subject ? `in subject: ${subject}` : ''}.
             
             Requirements:
-            1. Generate 10 Multiple Choice Questions (MCQs).
-            2. Generate 5 Short Numerical/Conceptual problems (just the question).
+            1. Generate 5 Multiple Choice Questions (MCQs).
+            2. Generate 3 Short Numerical/Conceptual problems (just the question).
             3. Output STRICTLY VALID JSON in this format:
             {
                 "mcqs": [
@@ -115,7 +116,10 @@ const generatePracticeQuiz = async (req, res) => {
             Do not include markdown.
         `;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: { maxOutputTokens: 1500 }
+        });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
@@ -134,7 +138,51 @@ const generatePracticeQuiz = async (req, res) => {
     }
 };
 
+// @desc    Resolve student doubt using AI
+// @route   POST /api/ai/resolve-doubt
+// @access  Private
+const generateDoubtResolution = async (req, res) => {
+    try {
+        const { query, context } = req.body; // context can be lecture title, course name, etc.
+
+        if (!query) {
+            return res.status(400).json({ success: false, message: "Query is required" });
+        }
+
+        const prompt = `
+            You are an expert academic tutor.
+            A student has asked the following doubt:
+            "${query}"
+            
+            Context: ${context || 'General Doubt'}
+            
+            Please provide a clear, concise, and accurate explanation.
+            - Use LaTeX for any mathematical formulas (enclose in $$ for block or $ for inline).
+            - Break down complex concepts into simple steps.
+            - Keep the tone encouraging and educational.
+            - If the query is irrelevant to academics, politely refuse.
+            
+            Response:
+        `;
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: { maxOutputTokens: 1000 }
+        });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        res.status(200).json({ success: true, answer: text });
+
+    } catch (error) {
+        console.error("Doubt Resolution Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     generateStudyPlan,
-    generatePracticeQuiz
+    generatePracticeQuiz,
+    generateDoubtResolution
 };

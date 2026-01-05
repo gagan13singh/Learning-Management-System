@@ -23,6 +23,10 @@ import {
     CheckCircleOutline,
     Book
 } from '@mui/icons-material';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import api from '../../utils/api';
 
 const AIPlannerWidget = ({ compact = false }) => {
@@ -194,7 +198,17 @@ const AIPlannerWidget = ({ compact = false }) => {
                                                     </Box>
                                                 </ListItemIcon>
                                                 <ListItemText
-                                                    primary={task.activity}
+                                                    primary={
+                                                        <ReactMarkdown
+                                                            remarkPlugins={[remarkMath]}
+                                                            rehypePlugins={[rehypeKatex]}
+                                                            components={{
+                                                                p: ({ node, ...props }) => <span {...props} />, // Render as span to avoid nesting p in p
+                                                            }}
+                                                        >
+                                                            {task.activity}
+                                                        </ReactMarkdown>
+                                                    }
                                                     secondary={
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                                                             <Schedule sx={{ fontSize: 14 }} />

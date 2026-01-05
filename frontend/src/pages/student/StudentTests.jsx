@@ -29,8 +29,10 @@ import {
 } from '@mui/icons-material';
 import api from '../../utils/api';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const StudentTests = () => {
+    const navigate = useNavigate();
     const [upcomingTests, setUpcomingTests] = useState([]);
     const [pastResults, setPastResults] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ const StudentTests = () => {
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Box sx={{ mb: 4 }}>
                     <Typography variant="h4" fontWeight="800" gutterBottom>
@@ -133,9 +135,30 @@ const StudentTests = () => {
                                             </Box>
 
                                             <Box sx={{ mt: 2 }}>
-                                                {/* Start logic would go here if online test window is open */}
-                                                <Button variant="outlined" fullWidth disabled={new Date(test.date) > new Date()}>
-                                                    {new Date(test.date) > new Date() ? 'Not Started Yet' : 'Start/View Test'}
+                                                <Button
+                                                    variant="contained"
+                                                    fullWidth
+                                                    disabled={new Date(test.date) > new Date()}
+                                                    onClick={async () => {
+                                                        try {
+                                                            setLoading(true);
+                                                            const res = await api.post(`/tests/${test._id}/start`);
+                                                            if (res.data.success) {
+                                                                // Redirect to engine with attemptId (or testId if using that param)
+                                                                // My route is /student/test/:attemptId/engine currently.
+                                                                // But wait, the route in App.jsx is /student/test/:attemptId/engine
+                                                                // The API returns { data: attempt }. So use attempt._id
+                                                                const attemptId = res.data.data._id;
+                                                                navigate(`/student/test/${attemptId}/engine`);
+                                                            }
+                                                        } catch (err) {
+                                                            console.error("Start failed", err);
+                                                            alert(err.response?.data?.message || "Failed to start test");
+                                                            setLoading(false);
+                                                        }
+                                                    }}
+                                                >
+                                                    {new Date(test.date) > new Date() ? 'Not Started Yet' : 'Start Test'}
                                                 </Button>
                                             </Box>
                                         </CardContent>

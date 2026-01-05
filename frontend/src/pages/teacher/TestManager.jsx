@@ -356,6 +356,23 @@ const TestManager = () => {
                                     >
                                         Grade / Results
                                     </Button>
+                                    {(test.type === 'ONLINE_QUIZ' || test.isOnlineQuiz) && (
+                                        <Button
+                                            variant="contained"
+                                            color="warning"
+                                            fullWidth
+                                            size="small"
+                                            onClick={() => {
+                                                // Assuming we have useNavigate here.
+                                                // TestManager uses useState, useEffect. Need to check if it imports useNavigate?
+                                                // It does NOT. I need to add it or use window.location.
+                                                // I'll use window.location for simplicity in this replace block, or fix imports in next step.
+                                                window.location.href = `/teacher/test/${test._id}/monitor`;
+                                            }}
+                                        >
+                                            Monitor Live
+                                        </Button>
+                                    )}
                                 </Box>
                             </CardContent>
                         </Card>

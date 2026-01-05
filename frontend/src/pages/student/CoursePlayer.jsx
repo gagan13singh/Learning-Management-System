@@ -38,9 +38,15 @@ import {
     Warning,
     Fullscreen,
     FullscreenExit,
+    AutoAwesome,
+    Send,
 } from '@mui/icons-material';
 import ReactPlayer from 'react-player';
 import PDFViewer from '../../components/student/PDFViewer';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import api from '../../utils/api';
 
 const CoursePlayer = () => {
@@ -56,8 +62,14 @@ const CoursePlayer = () => {
     const [progress, setProgress] = useState({}); // Map of lectureId -> boolean (completed)
     const [courseProgress, setCourseProgress] = useState(0);
     const [certificateId, setCertificateId] = useState(null);
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isFullscreen, setisFullscreen] = useState(false);
     const [userName, setUserName] = useState('');
+
+    // Ask Doubt State
+    const [doubtOpen, setDoubtOpen] = useState(false);
+    const [doubtQuery, setDoubtQuery] = useState('');
+    const [doubtLoading, setDoubtLoading] = useState(false);
+    const [doubtResponse, setDoubtResponse] = useState(null);
 
     useEffect(() => {
         fetchCourse();
@@ -638,10 +650,19 @@ const CoursePlayer = () => {
             </Box>
 
             {/* Sidebar - Curriculum (Right) */}
-            <Box sx={{ width: 400, borderLeft: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="h6" fontWeight="700" gutterBottom>
-                        Course Curriculum
+            <Box sx={{
+                width: 400,
+                borderLeft: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+                display: 'flex',
+                flexDirection: 'column',
+                flexShrink: 0,
+                boxShadow: '-4px 0 20px rgba(0,0,0,0.02)'
+            }}>
+                <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+                    <Typography variant="h6" fontWeight="800" sx={{ letterSpacing: '-0.01em' }}>
+                        Course Content
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
                         <LinearProgress
@@ -651,8 +672,11 @@ const CoursePlayer = () => {
                                 flexGrow: 1,
                                 height: 8,
                                 borderRadius: 4,
-                                bgcolor: 'action.hover',
-                                '& .MuiLinearProgress-bar': { borderRadius: 4 }
+                                bgcolor: 'divider',
+                                '& .MuiLinearProgress-bar': {
+                                    borderRadius: 4,
+                                    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.success.main})`
+                                }
                             }}
                         />
                         <Typography variant="body2" fontWeight="700" color="text.secondary">
@@ -675,9 +699,24 @@ const CoursePlayer = () => {
                                 '&.Mui-expanded': { margin: 0 }
                             }}
                         >
-                            <AccordionSummary expandIcon={<ExpandMore />} sx={{ px: 2, bgcolor: 'background.paper', minHeight: 64 }}>
-                                <Typography variant="subtitle2" fontWeight="700" sx={{ color: 'text.primary' }}>
-                                    MODULE {index + 1}: {module.title}
+                            <AccordionSummary
+                                expandIcon={<ExpandMore />}
+                                sx={{
+                                    px: 3,
+                                    bgcolor: 'background.paper',
+                                    minHeight: 64,
+                                    '&:hover': { bgcolor: 'action.hover' }
+                                }}
+                            >
+                                <Typography variant="subtitle2" fontWeight="700" sx={{ color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Box component="span" sx={{
+                                        width: 24, height: 24, borderRadius: '50%',
+                                        bgcolor: 'primary.soft', color: 'primary.main',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem'
+                                    }}>
+                                        {index + 1}
+                                    </Box>
+                                    {module.title}
                                 </Typography>
                             </AccordionSummary>
                             <AccordionDetails sx={{ p: 0 }}>
@@ -692,21 +731,25 @@ const CoursePlayer = () => {
                                                 pl: 3,
                                                 py: 2,
                                                 borderLeft: activeLecture?._id === lecture._id ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent',
-                                                bgcolor: activeLecture?._id === lecture._id ? 'action.selected' : 'transparent',
-                                                '&:hover': { bgcolor: 'action.hover' }
+                                                bgcolor: activeLecture?._id === lecture._id ? 'primary.soft' : 'transparent',
+                                                color: activeLecture?._id === lecture._id ? 'primary.main' : 'text.primary',
+                                                '&:hover': { bgcolor: activeLecture?._id === lecture._id ? 'primary.soft' : 'action.hover' }
                                             }}
                                         >
-                                            <ListItemIcon sx={{ minWidth: 40 }}>
-                                                {lecture.type === 'video' && <PlayCircle fontSize="small" color={progress[lecture._id] ? 'success' : activeLecture?._id === lecture._id ? 'primary' : 'inherit'} />}
-                                                {lecture.type === 'text' && <Description fontSize="small" color={progress[lecture._id] ? 'success' : activeLecture?._id === lecture._id ? 'primary' : 'inherit'} />}
-                                                {lecture.type === 'quiz' && <Quiz fontSize="small" color={progress[lecture._id] ? 'success' : activeLecture?._id === lecture._id ? 'primary' : 'inherit'} />}
+                                            <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                                                {lecture.type === 'video' && <PlayCircle fontSize="small" color="inherit" />}
+                                                {lecture.type === 'text' && <Description fontSize="small" color="inherit" />}
+                                                {lecture.type === 'quiz' && <Quiz fontSize="small" color="inherit" />}
+                                                {progress[lecture._id] && (
+                                                    <CheckCircle sx={{ fontSize: 14, position: 'absolute', top: 10, left: 10, color: 'success.main' }} />
+                                                )}
                                             </ListItemIcon>
                                             <ListItemText
                                                 primary={lecture.title}
                                                 primaryTypographyProps={{
                                                     variant: 'body2',
-                                                    fontWeight: activeLecture?._id === lecture._id ? 600 : 400,
-                                                    color: activeLecture?._id === lecture._id ? 'text.primary' : 'text.secondary'
+                                                    fontWeight: activeLecture?._id === lecture._id ? 700 : 500,
+                                                    color: 'inherit'
                                                 }}
                                             />
                                         </ListItem>
@@ -717,6 +760,82 @@ const CoursePlayer = () => {
                     ))}
                 </Box>
             </Box>
+            {/* Ask Doubt Dialog */}
+            <Dialog open={doubtOpen} onClose={() => setDoubtOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AutoAwesome color="primary" />
+                    Ask AI Doubt
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ mt: 1 }}>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Ask a question about the current lecture: <strong>{activeLecture?.title}</strong>
+                        </Typography>
+
+                        {doubtResponse ? (
+                            <Paper sx={{ p: 2, bgcolor: '#f0f7ff', borderRadius: 2, mt: 2, border: '1px solid #cce5ff' }}>
+                                <Typography variant="subtitle2" fontWeight="bold" gutterBottom color="primary">AI Response:</Typography>
+                                <Box sx={{ typography: 'body2', '& p': { m: 0 } }}>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkMath]}
+                                        rehypePlugins={[rehypeKatex]}
+                                    >
+                                        {doubtResponse}
+                                    </ReactMarkdown>
+                                </Box>
+                                <Button
+                                    size="small"
+                                    sx={{ mt: 1 }}
+                                    onClick={() => { setDoubtResponse(null); setDoubtQuery(''); }}
+                                >
+                                    Ask Another
+                                </Button>
+                            </Paper>
+                        ) : (
+                            <>
+                                <TextField
+                                    fullWidth
+                                    multiline
+                                    rows={4}
+                                    placeholder="Type your question here..."
+                                    value={doubtQuery}
+                                    onChange={(e) => setDoubtQuery(e.target.value)}
+                                    sx={{ mt: 1 }}
+                                />
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        endIcon={doubtLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
+                                        onClick={async () => {
+                                            if (!doubtQuery.trim()) return;
+                                            setDoubtLoading(true);
+                                            try {
+                                                const response = await api.post('/ai/resolve-doubt', {
+                                                    query: doubtQuery,
+                                                    context: `Lecture: ${activeLecture?.title || 'Course Content'}`
+                                                });
+                                                if (response.data.success) {
+                                                    setDoubtResponse(response.data.answer);
+                                                } else {
+                                                    setDoubtResponse('Failed to get a response. Please try again.');
+                                                }
+                                            } catch (error) {
+                                                console.error('Ask Doubt Error:', error);
+                                                setDoubtResponse('An error occurred. Please check your connection.');
+                                            } finally {
+                                                setDoubtLoading(false);
+                                            }
+                                        }}
+                                        disabled={!doubtQuery.trim() || doubtLoading}
+                                    >
+                                        Ask Question
+                                    </Button>
+                                </Box>
+                            </>
+                        )}
+                    </Box>
+                </DialogContent>
+            </Dialog>
         </Box >
     );
 };

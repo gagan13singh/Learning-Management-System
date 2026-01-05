@@ -54,7 +54,7 @@ const StudentAttendance = () => {
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Box sx={{ mb: 4 }}>
                     <Typography variant="h4" fontWeight="800" gutterBottom>

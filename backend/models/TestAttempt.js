@@ -1,105 +1,74 @@
 const mongoose = require('mongoose');
 
-const violationSchema = new mongoose.Schema({
-    timestamp: {
-        type: Date,
-        default: Date.now,
-    },
-    type: {
-        type: String,
-        enum: ['TAB_SWITCH', 'FULLSCREEN_EXIT', 'COPY_PASTE'],
-        default: 'TAB_SWITCH',
-    },
-    description: String,
-});
-
-const answerSchema = new mongoose.Schema({
-    questionId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-    },
-    answer: mongoose.Schema.Types.Mixed, // Can be String or Array for multiple select
-    isCorrect: Boolean,
-    pointsEarned: {
-        type: Number,
-        default: 0,
-    },
-    timeSpent: Number, // seconds spent on this question
-});
-
-const testAttemptSchema = new mongoose.Schema({
+const TestAttemptSchema = new mongoose.Schema({
     student: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+        required: true
     },
     test: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Test',
-        required: true,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['InProgress', 'Completed', 'Terminated', 'Timeout'],
+        default: 'InProgress'
     },
     startTime: {
         type: Date,
-        default: Date.now,
+        default: Date.now
     },
     endTime: Date,
-    submittedAt: Date,
-
-    answers: [answerSchema],
-
-    score: {
+    answers: [{
+        questionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Question'
+        },
+        markedOptionIds: [String], // For MCQ/MSQ
+        textAnswer: String, // For FillBlanks/Descriptive/Code
+        timeSpent: Number, // Seconds spent on this question
+        isCorrect: Boolean,
+        marksObtained: Number
+    }],
+    // Anti-Cheating Logs
+    proctoringLogs: [{
+        violationType: {
+            type: String,
+            enum: ['TAB_SWITCH', 'FULLSCREEN_EXIT', 'WINDOW_FOCUS_LOST', 'SPLIT_SCREEN', 'COPY_PASTE', 'DEVICE_CHANGE', 'MULTIPLE_FACES']
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now
+        },
+        evidence: String, // Description or Metadata
+        snapshot: String // URL to evidence image (optional, if implementing no-screenshot policy this might be metadata only)
+    }],
+    fraudScore: {
         type: Number,
         default: 0,
+        min: 0,
+        max: 100
     },
-    totalPoints: Number,
-    percentage: {
-        type: Number,
-        default: 0,
-    },
-    passed: {
-        type: Boolean,
-        default: false,
-    },
-
-    violations: [violationSchema],
-    violationCount: {
-        type: Number,
-        default: 0,
-    },
-
-    status: {
+    riskLevel: {
         type: String,
-        enum: ['in-progress', 'completed', 'cancelled', 'expired'],
-        default: 'in-progress',
+        enum: ['Low', 'Medium', 'High'],
+        default: 'Low'
     },
-
-    // Randomized question order for this attempt
-    questionOrder: [mongoose.Schema.Types.ObjectId],
-
-    // IP address and user agent for security
-    ipAddress: String,
-    userAgent: String,
-}, {
-    timestamps: true,
+    totalScore: {
+        type: Number,
+        default: 0
+    },
+    feedback: String
 });
 
-// Index for faster queries
-testAttemptSchema.index({ student: 1, test: 1 });
-testAttemptSchema.index({ test: 1, status: 1 });
+// Middleware to auto-calculate risk level
+TestAttemptSchema.pre('save', function (next) {
+    if (this.fraudScore >= 50) this.riskLevel = 'High';
+    else if (this.fraudScore >= 20) this.riskLevel = 'Medium';
+    else this.riskLevel = 'Low';
+    next();
+});
 
-// Method to calculate score
-testAttemptSchema.methods.calculateScore = function () {
-    this.score = this.answers.reduce((total, answer) => total + (answer.pointsEarned || 0), 0);
-    if (this.totalPoints > 0) {
-        this.percentage = Math.round((this.score / this.totalPoints) * 100);
-    }
-    return this.score;
-};
-
-// Method to check if passed
-testAttemptSchema.methods.checkPassed = function (passingPercentage) {
-    this.passed = this.percentage >= passingPercentage;
-    return this.passed;
-};
-
-module.exports = mongoose.model('TestAttempt', testAttemptSchema);
+module.exports = mongoose.model('TestAttempt', TestAttemptSchema);

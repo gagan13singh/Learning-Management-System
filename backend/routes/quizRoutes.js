@@ -7,6 +7,7 @@ const {
     getQuizFull,
     submitQuiz,
     getMyAttempts,
+    getMyAllAttempts,
     getQuizAnalytics,
     updateQuiz,
     deleteQuiz,
@@ -26,6 +27,7 @@ router.delete('/:id', protect, authorize('teacher', 'admin'), deleteQuiz);
 router.get('/course/:courseId', protect, getQuizzesByCourse);
 router.get('/:id', protect, getQuiz);
 router.post('/:id/submit', protect, authorize('student'), submitQuiz);
+router.get('/my-attempts/all', protect, getMyAllAttempts);
 router.get('/:id/attempts', protect, getMyAttempts);
 
 module.exports = router;

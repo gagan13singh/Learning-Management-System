@@ -280,37 +280,84 @@ const ManageCourse = () => {
                 {/* Header */}
                 <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <IconButton onClick={() => navigate('/teacher/dashboard')}>
+                        <IconButton
+                            onClick={() => navigate('/teacher/dashboard')}
+                            sx={{
+                                bgcolor: 'background.paper',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 3,
+                                '&:hover': { bgcolor: 'action.hover' }
+                            }}
+                        >
                             <ArrowBack />
                         </IconButton>
                         <Box>
-                            <Typography variant="h4" fontWeight="700">
+                            <Typography variant="h4" fontWeight="800" sx={{ lineHeight: 1.2 }}>
                                 {course.title}
                             </Typography>
                             <Chip
-                                label={course.status}
+                                label={course.status === 'published' ? 'PUBLISHED' : 'DRAFT'}
                                 color={course.status === 'published' ? 'success' : 'default'}
                                 size="small"
-                                sx={{ mt: 1 }}
+                                variant={course.status === 'published' ? 'filled' : 'outlined'}
+                                sx={{ mt: 1, fontWeight: 700, borderRadius: 1 }}
                             />
                         </Box>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 2 }}>
                         <Button
-                            variant="outlined"
+                            variant={course.status === 'published' ? 'outlined' : 'contained'}
+                            color={course.status === 'published' ? 'warning' : 'success'}
                             onClick={handleTogglePublish}
+                            startIcon={course.status === 'published' ? <Save /> : <CloudUpload />}
+                            sx={{ borderRadius: 3, px: 3, fontWeight: 700, textTransform: 'none' }}
                         >
-                            {course.status === 'published' ? 'Unpublish' : 'Publish'}
+                            {course.status === 'published' ? 'Unpublish Course' : 'Publish Course'}
                         </Button>
                     </Box>
                 </Box>
 
                 {/* Tabs */}
-                <Paper sx={{ mb: 3 }}>
-                    <Tabs value={tabValue} onChange={handleTabChange} centered>
-                        <Tab label="Content" />
-                        <Tab label="Students" />
-                        <Tab label="Settings" />
+                <Paper
+                    elevation={0}
+                    sx={{
+                        mb: 4,
+                        borderRadius: 3,
+                        bgcolor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        overflow: 'hidden'
+                    }}
+                >
+                    <Tabs
+                        value={tabValue}
+                        onChange={handleTabChange}
+                        variant="fullWidth"
+                        sx={{
+                            '& .MuiTab-root': {
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                fontSize: '1rem',
+                                py: 2,
+                                transition: 'all 0.2s',
+                                '&.Mui-selected': {
+                                    color: 'primary.main',
+                                    bgcolor: 'primary.soft'
+                                },
+                                '&:hover:not(.Mui-selected)': {
+                                    bgcolor: 'action.hover'
+                                }
+                            },
+                            '& .MuiTabs-indicator': {
+                                height: 3,
+                                borderRadius: '3px 3px 0 0'
+                            }
+                        }}
+                    >
+                        <Tab label="Course Content" icon={<VideoLibrary sx={{ mb: 0 }} />} iconPosition="start" />
+                        <Tab label="Enrolled Students" icon={<Person sx={{ mb: 0 }} />} iconPosition="start" />
+                        <Tab label="Settings" icon={<Edit sx={{ mb: 0 }} />} iconPosition="start" />
                     </Tabs>
                 </Paper>
 
@@ -328,249 +375,323 @@ const ManageCourse = () => {
                         </Box>
                         <Grid container spacing={3}>
                             <Grid item xs={12}>
-                                {course.modules.map((module, index) => (
-                                    <Accordion key={module._id} defaultExpanded>
-                                        <AccordionSummary expandIcon={<ExpandMore />}>
-                                            <Typography variant="h6">
-                                                Module {index + 1}: {module.title}
-                                            </Typography>
-                                        </AccordionSummary>
-                                        <AccordionDetails>
-                                            <List>
-                                                {module.lectures.map((lecture) => (
-                                                    <ListItem
-                                                        key={lecture._id}
-                                                        sx={{ bgcolor: 'background.paper', mb: 1, borderRadius: 1 }}
-                                                        secondaryAction={
-                                                            <IconButton
-                                                                edge="end"
-                                                                onClick={() => {
-                                                                    setCurrentModuleId(module._id);
-                                                                    setEditingLectureId(lecture._id);
-                                                                    setIsEditing(true);
-                                                                    setLectureForm({
-                                                                        title: lecture.title,
-                                                                        description: lecture.description,
-                                                                        type: lecture.type,
-                                                                        content: lecture.content,
-                                                                        videoUrl: lecture.videoUrl
-                                                                    });
-                                                                    setOpenLectureDialog(true);
+                                {course.modules.length === 0 ? (
+                                    <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 4, border: '1px dashed', borderColor: 'divider', bgcolor: 'background.subtle' }}>
+                                        <Typography variant="h6" color="text.secondary" gutterBottom>
+                                            No modules added yet
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                            Start building your course structure by adding sections and lectures.
+                                        </Typography>
+                                        <Button
+                                            variant="contained"
+                                            startIcon={<Add />}
+                                            onClick={() => setOpenModuleDialog(true)}
+                                            sx={{ borderRadius: 2 }}
+                                        >
+                                            Create First Module
+                                        </Button>
+                                    </Paper>
+                                ) : (
+                                    course.modules.map((module, index) => (
+                                        <Accordion
+                                            key={module._id}
+                                            defaultExpanded
+                                            disableGutters
+                                            elevation={0}
+                                            sx={{
+                                                mb: 2,
+                                                borderRadius: '12px !important',
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                '&:before': { display: 'none' },
+                                                overflow: 'hidden'
+                                            }}
+                                        >
+                                            <AccordionSummary
+                                                expandIcon={<ExpandMore />}
+                                                sx={{
+                                                    bgcolor: 'background.subtle',
+                                                    '&.Mui-expanded': { borderBottom: '1px solid', borderColor: 'divider' }
+                                                }}
+                                            >
+                                                <Typography variant="h6" fontWeight="600" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Box component="span" sx={{
+                                                        width: 28, height: 28, borderRadius: '50%',
+                                                        bgcolor: 'primary.soft', color: 'primary.main',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem'
+                                                    }}>
+                                                        {index + 1}
+                                                    </Box>
+                                                    {module.title}
+                                                </Typography>
+                                            </AccordionSummary>
+                                            <AccordionDetails sx={{ p: 0 }}>
+                                                <List disablePadding>
+                                                    {module.lectures.length === 0 ? (
+                                                        <ListItem sx={{ py: 3, justifyContent: 'center' }}>
+                                                            <Typography variant="body2" color="text.secondary">Empty module. Add content below.</Typography>
+                                                        </ListItem>
+                                                    ) : (
+                                                        module.lectures.map((lecture) => (
+                                                            <ListItem
+                                                                key={lecture._id}
+                                                                sx={{
+                                                                    borderBottom: '1px solid',
+                                                                    borderColor: 'divider',
+                                                                    '&:last-child': { borderBottom: 'none' },
+                                                                    py: 1.5,
+                                                                    px: 3,
+                                                                    '&:hover': { bgcolor: 'action.hover' }
                                                                 }}
+                                                                secondaryAction={
+                                                                    <IconButton
+                                                                        edge="end"
+                                                                        size="small"
+                                                                        onClick={() => {
+                                                                            setCurrentModuleId(module._id);
+                                                                            setEditingLectureId(lecture._id);
+                                                                            setIsEditing(true);
+                                                                            setLectureForm({
+                                                                                title: lecture.title,
+                                                                                description: lecture.description,
+                                                                                type: lecture.type,
+                                                                                content: lecture.content,
+                                                                                videoUrl: lecture.videoUrl
+                                                                            });
+                                                                            setOpenLectureDialog(true);
+                                                                        }}
+                                                                        sx={{ color: 'primary.main', bgcolor: 'primary.soft', '&:hover': { bgcolor: 'primary.main', color: 'white' } }}
+                                                                    >
+                                                                        <Edit fontSize="small" />
+                                                                    </IconButton>
+                                                                }
                                                             >
-                                                                <Edit />
-                                                            </IconButton>
-                                                        }
+                                                                <Box sx={{ mr: 2.5, display: 'flex', alignItems: 'center' }}>
+                                                                    {lecture.type === 'video' && <VideoLibrary color="primary" />}
+                                                                    {lecture.type === 'text' && <Description color="info" />}
+                                                                    {lecture.type === 'quiz' && <Quiz color="warning" />}
+                                                                </Box>
+                                                                <ListItemText
+                                                                    primary={lecture.title}
+                                                                    primaryTypographyProps={{ fontWeight: 500 }}
+                                                                    secondary={
+                                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                            {lecture.type === 'video' ? 'Video Lecture' : lecture.type === 'quiz' ? 'Quiz Assessment' : 'Reading Material'}
+                                                                            {lecture.type === 'video' && lecture.duration && ` • ${Math.round(lecture.duration / 60)} mins`}
+                                                                        </Typography>
+                                                                    }
+                                                                />
+                                                            </ListItem>
+                                                        ))
+                                                    )}
+                                                </List>
+                                                <Divider />
+                                                <Box sx={{ p: 2, display: 'flex', gap: 1, bgcolor: 'background.default' }}>
+                                                    <Button
+                                                        startIcon={<Add />}
+                                                        size="small"
+                                                        variant="text"
+                                                        onClick={() => {
+                                                            setCurrentModuleId(module._id);
+                                                            setEditingLectureId(null);
+                                                            setIsEditing(false);
+                                                            setLectureForm({ title: '', description: '', type: 'video', content: '', videoUrl: '' });
+                                                            setVideoFile(null);
+                                                            setOpenLectureDialog(true);
+                                                        }}
                                                     >
-                                                        <Box sx={{ mr: 2 }}>
-                                                            {lecture.type === 'video' && <VideoLibrary color="primary" />}
-                                                            {lecture.type === 'text' && <Description color="secondary" />}
-                                                            {lecture.type === 'quiz' && <Quiz color="warning" />}
-                                                        </Box>
-                                                        <ListItemText
-                                                            primary={lecture.title}
-                                                            secondary={lecture.type === 'video' ? `${Math.round(lecture.duration)}s` : 'Text Content'}
-                                                        />
-                                                    </ListItem>
-                                                ))}
-                                            </List>
-                                            <Button
-                                                startIcon={<Add />}
-                                                size="small"
-                                                onClick={() => {
-                                                    setCurrentModuleId(module._id);
-                                                    setEditingLectureId(null);
-                                                    setIsEditing(false);
-                                                    setLectureForm({ title: '', description: '', type: 'video', content: '', videoUrl: '' });
-                                                    setVideoFile(null);
-                                                    setOpenLectureDialog(true);
-                                                }}
-                                                sx={{ mt: 1, mr: 1 }}
-                                            >
-                                                Add Content
-                                            </Button>
-                                            <Button
-                                                startIcon={<Quiz />}
-                                                size="small"
-                                                onClick={() => {
-                                                    setCurrentModuleId(module._id);
-                                                    setOpenQuizDialog(true);
-                                                }}
-                                                sx={{ mt: 1 }}
-                                                color="warning"
-                                            >
-                                                Add Quiz
-                                            </Button>
-                                        </AccordionDetails>
-                                    </Accordion>
-                                ))}
+                                                        Add Content
+                                                    </Button>
+                                                    <Button
+                                                        startIcon={<Quiz />}
+                                                        size="small"
+                                                        variant="text"
+                                                        color="warning"
+                                                        onClick={() => {
+                                                            setCurrentModuleId(module._id);
+                                                            setOpenQuizDialog(true);
+                                                        }}
+                                                    >
+                                                        Add Quiz
+                                                    </Button>
+                                                </Box>
+                                            </AccordionDetails>
+                                        </Accordion>
+                                    ))
+                                )}
                             </Grid>
                         </Grid>
                     </Box>
-                )}
+                )
+                }
 
                 {/* Students Tab */}
-                {tabValue === 1 && (
-                    <Paper sx={{ p: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Enrolled Students ({students.length})
-                        </Typography>
-                        {loadingStudents ? (
-                            <CircularProgress />
-                        ) : students.length === 0 ? (
-                            <Typography color="text.secondary">No students enrolled yet.</Typography>
-                        ) : (
-                            <List>
-                                {students.map((enrollment) => (
-                                    <ListItem key={enrollment._id} divider>
-                                        <ListItemAvatar>
-                                            <Avatar src={enrollment.student?.profilePicture}>
-                                                {enrollment.student?.name?.charAt(0)}
-                                            </Avatar>
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={enrollment.student?.name}
-                                            secondary={
-                                                <>
-                                                    <Typography component="span" variant="body2" color="text.primary">
-                                                        {enrollment.student?.email}
-                                                    </Typography>
-                                                    <br />
-                                                    Enrolled on: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
-                                                </>
-                                            }
-                                        />
-                                        <Chip
-                                            label={`${Math.round(enrollment.progress)}% Complete`}
-                                            color={enrollment.progress >= 100 ? 'success' : 'primary'}
-                                            variant="outlined"
-                                        />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                    </Paper>
-                )}
+                {
+                    tabValue === 1 && (
+                        <Paper sx={{ p: 3 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Enrolled Students ({students.length})
+                            </Typography>
+                            {loadingStudents ? (
+                                <CircularProgress />
+                            ) : students.length === 0 ? (
+                                <Typography color="text.secondary">No students enrolled yet.</Typography>
+                            ) : (
+                                <List>
+                                    {students.map((enrollment) => (
+                                        <ListItem key={enrollment._id} divider>
+                                            <ListItemAvatar>
+                                                <Avatar src={enrollment.student?.profilePicture}>
+                                                    {enrollment.student?.name?.charAt(0)}
+                                                </Avatar>
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={enrollment.student?.name}
+                                                secondary={
+                                                    <>
+                                                        <Typography component="span" variant="body2" color="text.primary">
+                                                            {enrollment.student?.email}
+                                                        </Typography>
+                                                        <br />
+                                                        Enrolled on: {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+                                                    </>
+                                                }
+                                            />
+                                            <Chip
+                                                label={`${Math.round(enrollment.progress)}% Complete`}
+                                                color={enrollment.progress >= 100 ? 'success' : 'primary'}
+                                                variant="outlined"
+                                            />
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            )}
+                        </Paper>
+                    )
+                }
 
                 {/* Settings Tab */}
-                {tabValue === 2 && (
-                    <Paper sx={{ p: 4 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Course Settings
-                        </Typography>
-                        <Grid container spacing={3}>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Course Title"
-                                    fullWidth
-                                    value={settingsForm.title}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, title: e.target.value })}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Description"
-                                    fullWidth
-                                    multiline
-                                    rows={4}
-                                    value={settingsForm.description}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, description: e.target.value })}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    select
-                                    label="Category"
-                                    fullWidth
-                                    value={settingsForm.category}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, category: e.target.value })}
-                                >
-                                    {['Mathematics', 'Science', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Other'].map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                            {option}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    select
-                                    label="Class"
-                                    fullWidth
-                                    value={settingsForm.class}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, class: e.target.value })}
-                                >
-                                    {['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12', 'Other'].map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                            {option}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    select
-                                    label="Difficulty"
-                                    fullWidth
-                                    value={settingsForm.difficulty}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, difficulty: e.target.value })}
-                                >
-                                    {['Beginner', 'Intermediate', 'Advanced'].map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                            {option}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="Price (₹)"
-                                    type="number"
-                                    fullWidth
-                                    value={settingsForm.price}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, price: e.target.value })}
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Box sx={{ border: '1px dashed grey', p: 3, textAlign: 'center', borderRadius: 1 }}>
-                                    <input
-                                        accept="image/*"
-                                        style={{ display: 'none' }}
-                                        id="thumbnail-upload"
-                                        type="file"
-                                        onChange={(e) => setThumbnailFile(e.target.files[0])}
+                {
+                    tabValue === 2 && (
+                        <Paper sx={{ p: 4 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Course Settings
+                            </Typography>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        label="Course Title"
+                                        fullWidth
+                                        value={settingsForm.title}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, title: e.target.value })}
                                     />
-                                    <label htmlFor="thumbnail-upload">
-                                        <Button variant="outlined" component="span" startIcon={<Image />}>
-                                            Change Thumbnail
-                                        </Button>
-                                    </label>
-                                    {thumbnailFile ? (
-                                        <Typography sx={{ mt: 1 }}>{thumbnailFile.name}</Typography>
-                                    ) : settingsForm.thumbnail && (
-                                        <Box sx={{ mt: 2 }}>
-                                            <img src={settingsForm.thumbnail} alt="Thumbnail" style={{ maxWidth: '100%', maxHeight: 200 }} />
-                                        </Box>
-                                    )}
-                                </Box>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        label="Description"
+                                        fullWidth
+                                        multiline
+                                        rows={4}
+                                        value={settingsForm.description}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, description: e.target.value })}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        select
+                                        label="Category"
+                                        fullWidth
+                                        value={settingsForm.category}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, category: e.target.value })}
+                                    >
+                                        {['Mathematics', 'Science', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Other'].map((option) => (
+                                            <MenuItem key={option} value={option}>
+                                                {option}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        select
+                                        label="Class"
+                                        fullWidth
+                                        value={settingsForm.class}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, class: e.target.value })}
+                                    >
+                                        {['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12', 'Other'].map((option) => (
+                                            <MenuItem key={option} value={option}>
+                                                {option}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        select
+                                        label="Difficulty"
+                                        fullWidth
+                                        value={settingsForm.difficulty}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, difficulty: e.target.value })}
+                                    >
+                                        {['Beginner', 'Intermediate', 'Advanced'].map((option) => (
+                                            <MenuItem key={option} value={option}>
+                                                {option}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        label="Price (₹)"
+                                        type="number"
+                                        fullWidth
+                                        value={settingsForm.price}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, price: e.target.value })}
+                                        InputProps={{
+                                            startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Box sx={{ border: '1px dashed grey', p: 3, textAlign: 'center', borderRadius: 1 }}>
+                                        <input
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            id="thumbnail-upload"
+                                            type="file"
+                                            onChange={(e) => setThumbnailFile(e.target.files[0])}
+                                        />
+                                        <label htmlFor="thumbnail-upload">
+                                            <Button variant="outlined" component="span" startIcon={<Image />}>
+                                                Change Thumbnail
+                                            </Button>
+                                        </label>
+                                        {thumbnailFile ? (
+                                            <Typography sx={{ mt: 1 }}>{thumbnailFile.name}</Typography>
+                                        ) : settingsForm.thumbnail && (
+                                            <Box sx={{ mt: 2 }}>
+                                                <img src={settingsForm.thumbnail} alt="Thumbnail" style={{ maxWidth: '100%', maxHeight: 200 }} />
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Button
+                                        variant="contained"
+                                        size="large"
+                                        startIcon={<Save />}
+                                        onClick={handleUpdateSettings}
+                                        disabled={uploadingThumbnail}
+                                    >
+                                        {uploadingThumbnail ? 'Uploading...' : 'Save Changes'}
+                                    </Button>
+                                </Grid>
                             </Grid>
-                            <Grid item xs={12}>
-                                <Button
-                                    variant="contained"
-                                    size="large"
-                                    startIcon={<Save />}
-                                    onClick={handleUpdateSettings}
-                                    disabled={uploadingThumbnail}
-                                >
-                                    {uploadingThumbnail ? 'Uploading...' : 'Save Changes'}
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    </Paper>
-                )}
+                        </Paper>
+                    )
+                }
 
                 {/* Add Module Dialog */}
                 <Dialog open={openModuleDialog} onClose={() => setOpenModuleDialog(false)}>
@@ -729,20 +850,22 @@ const ManageCourse = () => {
                 </Dialog>
 
                 {/* Quiz Creator Dialog */}
-                {course && (
-                    <QuizCreator
-                        open={openQuizDialog}
-                        onClose={() => setOpenQuizDialog(false)}
-                        courseId={course._id}
-                        moduleId={currentModuleId}
-                        onQuizCreated={() => {
-                            fetchCourse();
-                            setOpenQuizDialog(false);
-                        }}
-                    />
-                )}
-            </Container>
-        </Box>
+                {
+                    course && (
+                        <QuizCreator
+                            open={openQuizDialog}
+                            onClose={() => setOpenQuizDialog(false)}
+                            courseId={course._id}
+                            moduleId={currentModuleId}
+                            onQuizCreated={() => {
+                                fetchCourse();
+                                setOpenQuizDialog(false);
+                            }}
+                        />
+                    )
+                }
+            </Container >
+        </Box >
     );
 };
 

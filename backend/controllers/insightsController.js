@@ -124,3 +124,62 @@ exports.getInsightsStats = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// Get Weak Topics (based on incorrect answers in quiz attempts)
+exports.getWeakTopics = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // Find courses taught by this teacher
+        const Course = require('../models/Course');
+        const teacherCourses = await Course.find({ instructor: userId }).select('_id');
+        const courseIds = teacherCourses.map(c => c._id);
+
+        // Find tests in these courses
+        const Test = require('../models/Test');
+        const teacherTests = await Test.find({ course: { $in: courseIds } }).select('_id');
+        const testIds = teacherTests.map(t => t._id);
+
+        const TestAttempt = require('../models/TestAttempt');
+
+        // Aggregate incorrect answers to find weak tags
+        const weakTopics = await TestAttempt.aggregate([
+            { $match: { test: { $in: testIds } } },
+            { $unwind: '$answers' },
+            { $match: { 'answers.isCorrect': false } },
+            {
+                $lookup: {
+                    from: 'questions',
+                    localField: 'answers.questionId',
+                    foreignField: '_id',
+                    as: 'question'
+                }
+            },
+            { $unwind: '$question' },
+            { $unwind: '$question.tags' },
+            {
+                $group: {
+                    _id: '$question.tags',
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { count: -1 } },
+            { $limit: 5 }
+        ]);
+
+        const topics = weakTopics.map(t => t._id);
+        res.status(200).json({ success: true, data: topics });
+    } catch (error) {
+        console.error('Weak Topics Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = {
+    getAtRiskStudents: exports.getAtRiskStudents,
+    getStudentInsights: exports.getStudentInsights,
+    calculateRisks: exports.calculateRisks,
+    addNote: exports.addNote,
+    addIncident: exports.addIncident,
+    getInsightsStats: exports.getInsightsStats,
+    getWeakTopics: exports.getWeakTopics
+};

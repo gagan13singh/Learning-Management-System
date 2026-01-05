@@ -1,26 +1,6 @@
 const mongoose = require('mongoose');
 
-const questionSchema = new mongoose.Schema({
-    questionText: {
-        type: String,
-        required: true,
-    },
-    questionType: {
-        type: String,
-        enum: ['MCQ', 'MULTIPLE_SELECT', 'TRUE_FALSE', 'FILL_BLANK'],
-        default: 'MCQ',
-    },
-    options: [String],
-    correctAnswer: String, // For MCQ, TRUE_FALSE, FILL_BLANK
-    correctAnswers: [String], // For MULTIPLE_SELECT
-    points: {
-        type: Number,
-        default: 1,
-    },
-    explanation: String, // Optional explanation for the answer
-});
-
-const testSchema = new mongoose.Schema({
+const TestSchema = new mongoose.Schema({
     title: {
         type: String,
         required: [true, 'Please add a test title'],
@@ -30,94 +10,60 @@ const testSchema = new mongoose.Schema({
         ref: 'Course',
         required: true,
     },
-    date: {
-        type: Date,
-        required: true,
-    },
-    totalMarks: {
-        type: Number,
-        required: true,
-    },
-    type: {
+    instructions: String,
+
+    // Test Mode Configuration
+    mode: {
         type: String,
-        enum: ['OBJECTIVE', 'SUBJECTIVE', 'PRACTICAL', 'VIVA', 'ONLINE_QUIZ'],
-        default: 'SUBJECTIVE',
-    },
-    syllabus: {
-        type: String,
-        required: true,
+        enum: ['Exam', 'Practice', 'Adaptive', 'Mock'],
+        default: 'Exam'
     },
 
-    // Online Quiz specific fields
-    isOnlineQuiz: {
-        type: Boolean,
-        default: false,
-    },
-    timeLimit: {
-        type: Number, // in minutes
-        default: 60,
-    },
-    passingPercentage: {
-        type: Number,
-        default: 40,
-        min: 0,
-        max: 100,
-    },
-    randomizeQuestions: {
-        type: Boolean,
-        default: false,
-    },
-    randomizeOptions: {
-        type: Boolean,
-        default: false,
-    },
-    enableProctoring: {
-        type: Boolean,
-        default: true,
-    },
-    maxViolations: {
-        type: Number,
-        default: 2,
-    },
-    showResultsImmediately: {
-        type: Boolean,
-        default: true,
+    // Time & Scoring Config
+    config: {
+        duration: { type: Number, required: true }, // in minutes
+        totalMarks: Number,
+        passingMarks: Number,
+        isTimed: { type: Boolean, default: true },
+        allowSectionSwitch: { type: Boolean, default: true },
+        shuffleQuestions: { type: Boolean, default: false },
+        showResultImmediately: { type: Boolean, default: true },
+        negativeMarking: { type: Boolean, default: false }
     },
 
-    // Questions array (enhanced for online quizzes)
-    questions: [questionSchema],
+    // Anti-Cheating / Proctoring Configuration
+    proctoring: {
+        enabled: { type: Boolean, default: true },
+        fullscreenRequired: { type: Boolean, default: true },
+        tabSwitchLimit: { type: Number, default: 3 },
+        preventCopyPaste: { type: Boolean, default: true },
+        trackFocusLost: { type: Boolean, default: true }
+    },
 
-    // Results for offline tests (manual grading)
-    results: [{
-        student: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-        },
-        marks: {
-            type: Number,
-            default: 0,
-        },
-        status: {
-            type: String,
-            enum: ['PRESENT', 'ABSENT'],
-            default: 'PRESENT',
-        },
+    // Questions (Referencing Question Bank)
+    questions: [{
+        questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' },
+        section: { type: String, default: 'General' },
+        marks: Number // Override marks if needed
     }],
 
+    // Metadata
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     createdAt: {
         type: Date,
         default: Date.now,
     },
 });
 
-// Virtual to calculate total points for online quizzes
-testSchema.virtual('totalPoints').get(function () {
-    if (!this.questions || this.questions.length === 0) return 0;
-    return this.questions.reduce((total, q) => total + (q.points || 0), 0);
+// Virtual for question count
+TestSchema.virtual('questionCount').get(function () {
+    return this.questions ? this.questions.length : 0;
 });
 
-// Ensure virtuals are included in JSON
-testSchema.set('toJSON', { virtuals: true });
-testSchema.set('toObject', { virtuals: true });
+TestSchema.set('toJSON', { virtuals: true });
+TestSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model('Test', testSchema);
+module.exports = mongoose.model('Test', TestSchema);

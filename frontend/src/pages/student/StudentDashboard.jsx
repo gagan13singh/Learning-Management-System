@@ -238,7 +238,7 @@ const StudentDashboard = () => {
                                         ))}
                                     </Grid>
                                 ) : enrolledCourses.length === 0 ? (
-                                    <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: 'background.paper', border: '1px dashed #ccc' }}>
+                                    <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: 'background.paper', border: '1px dashed', borderColor: 'divider' }}>
                                         <Typography color="text.secondary">No active courses.</Typography>
                                         <Button variant="contained" sx={{ mt: 2 }} onClick={() => navigate('/student/courses')}>Browse Catalog</Button>
                                     </Paper>
@@ -259,43 +259,46 @@ const StudentDashboard = () => {
                                                             alignItems: 'center',
                                                             gap: 3,
                                                             cursor: 'pointer',
-                                                            transition: 'all 0.2s',
+                                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                            bgcolor: 'background.paper',
                                                             '&:hover': {
                                                                 borderColor: 'primary.main',
-                                                                boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
+                                                                transform: 'translateY(-4px)',
+                                                                boxShadow: '0 12px 24px -10px rgba(99, 102, 241, 0.15)'
                                                             }
                                                         }}
                                                     >
                                                         {/* Thumbnail */}
                                                         <Box sx={{
-                                                            width: 120,
-                                                            height: 90,
+                                                            width: 130,
+                                                            height: 96,
                                                             borderRadius: 3,
-                                                            bgcolor: 'grey.200',
+                                                            bgcolor: 'action.hover',
                                                             backgroundImage: `url(${enrollment.course?.thumbnail})`,
                                                             backgroundSize: 'cover',
                                                             backgroundPosition: 'center',
                                                             flexShrink: 0,
-                                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                            border: '1px solid rgba(0,0,0,0.05)'
                                                         }} />
 
                                                         {/* Details */}
                                                         <Box sx={{ flexGrow: 1 }}>
-                                                            <Typography variant="h6" fontWeight="bold" noWrap sx={{ fontSize: '1.1rem', mb: 0.5 }}>
+                                                            <Typography variant="h6" fontWeight="800" noWrap sx={{ fontSize: '1.2rem', mb: 0.5, letterSpacing: '-0.01em' }}>
                                                                 {enrollment.course?.title}
                                                             </Typography>
 
-                                                            <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
+                                                            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
                                                                     <AccessTime sx={{ fontSize: 16 }} />
-                                                                    <Typography variant="caption">1h 20m left</Typography>
+                                                                    <Typography variant="body2" fontWeight="500">2h 15m remaining</Typography>
                                                                 </Box>
                                                             </Box>
 
                                                             {/* Progress Bar */}
                                                             <Box sx={{ width: '100%' }}>
-                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                                                    <Typography variant="caption" fontWeight="bold" color="primary.main">
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                                    <Typography variant="caption" fontWeight="700" color="primary.main">
                                                                         {Math.round(enrollment.progress)}% Complete
                                                                     </Typography>
                                                                 </Box>
@@ -303,10 +306,13 @@ const StudentDashboard = () => {
                                                                     variant="determinate"
                                                                     value={enrollment.progress}
                                                                     sx={{
-                                                                        height: 6,
-                                                                        borderRadius: 3,
-                                                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'grey.100',
-                                                                        '& .MuiLinearProgress-bar': { borderRadius: 3 }
+                                                                        height: 8,
+                                                                        borderRadius: 4,
+                                                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(99, 102, 241, 0.1)',
+                                                                        '& .MuiLinearProgress-bar': {
+                                                                            borderRadius: 4,
+                                                                            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`
+                                                                        }
                                                                     }}
                                                                 />
                                                             </Box>

@@ -75,6 +75,18 @@ const TeacherDashboard = () => {
             });
             setRecentCourses(coursesRes.data.data?.slice(0, 3) || []);
 
+            // Fetch Weak Topics (Real)
+            const weakRes = await axios.get('http://localhost:5000/api/insights/weak-topics', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setWeakTopics(weakRes.data.data || []);
+
+            // Fetch At-Risk Students (Real)
+            const riskRes = await axios.get('http://localhost:5000/api/insights/at-risk?riskLevel=all', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setAtRiskStudents(riskRes.data.data?.slice(0, 3) || []);
+
             setLoading(false);
 
         } catch (error) {
@@ -83,7 +95,8 @@ const TeacherDashboard = () => {
         }
     };
 
-    const weakTopics = ['Trigonometry', 'Organic Chemistry', 'Thermodynamics'];
+    const [weakTopics, setWeakTopics] = useState([]);
+    const [atRiskStudents, setAtRiskStudents] = useState([]);
 
     return (
         <motion.div
@@ -124,11 +137,22 @@ const TeacherDashboard = () => {
                         <motion.div variants={itemVariants}>
                             <Card
                                 onClick={() => navigate(stat.path)}
+                                elevation={0}
                                 sx={{
                                     cursor: 'pointer',
                                     height: '100%',
                                     position: 'relative',
-                                    overflow: 'visible'
+                                    overflow: 'hidden',
+                                    borderRadius: 4,
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    background: `linear-gradient(135deg, ${stat.color}08 0%, ${theme.palette.background.paper} 100%)`,
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    '&:hover': {
+                                        transform: 'translateY(-5px)',
+                                        boxShadow: `0 12px 24px -10px ${stat.color}40`,
+                                        borderColor: stat.color,
+                                    }
                                 }}
                             >
                                 <CardContent sx={{ display: 'flex', alignItems: 'center', p: 3 }}>
@@ -138,12 +162,13 @@ const TeacherDashboard = () => {
                                         <Avatar
                                             variant="rounded"
                                             sx={{
-                                                bgcolor: `${stat.color}15`,
-                                                color: stat.color,
+                                                background: `linear-gradient(135deg, ${stat.color}, ${stat.color}DD)`,
+                                                color: '#fff',
                                                 width: 56,
                                                 height: 56,
                                                 mr: 2.5,
-                                                borderRadius: '16px'
+                                                borderRadius: '16px',
+                                                boxShadow: `0 8px 16px -4px ${stat.color}60`
                                             }}
                                         >
                                             {stat.icon}
@@ -156,7 +181,7 @@ const TeacherDashboard = () => {
                                         {loading ? (
                                             <Skeleton variant="text" width={60} height={40} />
                                         ) : (
-                                            <Typography variant="h4" fontWeight="800">
+                                            <Typography variant="h4" fontWeight="800" sx={{ color: 'text.primary' }}>
                                                 {stat.value}
                                             </Typography>
                                         )}
@@ -165,8 +190,8 @@ const TeacherDashboard = () => {
                                         size="small"
                                         sx={{
                                             color: stat.color,
-                                            opacity: 0.5,
-                                            '&:hover': { opacity: 1, background: `${stat.color}10` }
+                                            opacity: 0.8,
+                                            '&:hover': { opacity: 1, background: `${stat.color}15` }
                                         }}
                                     >
                                         <ArrowForward />
@@ -183,11 +208,11 @@ const TeacherDashboard = () => {
                 <Grid item xs={12} md={8}>
                     {/* Recent Courses */}
                     <motion.div variants={itemVariants}>
-                        <Card sx={{ mb: 3 }}>
+                        <Card sx={{ mb: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }} elevation={0}>
                             <CardContent sx={{ p: 3 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
                                     <Typography variant="h6" fontWeight="bold">Recent Courses</Typography>
-                                    <Button size="small" onClick={() => navigate('/teacher/courses')} color="inherit">View All</Button>
+                                    <Button size="small" onClick={() => navigate('/teacher/courses')} color="primary" sx={{ borderRadius: 2 }}>View All</Button>
                                 </Box>
 
                                 {loading ? (
@@ -207,11 +232,17 @@ const TeacherDashboard = () => {
                                                 alignItems: 'center',
                                                 p: 2,
                                                 mb: 2,
-                                                bgcolor: theme.palette.background.subtle,
+                                                bgcolor: 'background.default',
                                                 borderRadius: 3,
                                                 cursor: 'pointer',
-                                                transition: 'background-color 0.2s',
-                                                '&:hover': { bgcolor: theme.palette.action.hover }
+                                                transition: 'all 0.2s',
+                                                border: '1px solid',
+                                                borderColor: 'transparent',
+                                                '&:hover': {
+                                                    bgcolor: 'background.paper',
+                                                    borderColor: 'primary.light',
+                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                                                }
                                             }}
                                             onClick={() => navigate(`/teacher/course/${course._id}`)}
                                         >
@@ -227,10 +258,10 @@ const TeacherDashboard = () => {
                                                 <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <span style={{ opacity: 0.7 }}>{course.category}</span>
                                                     <span>•</span>
-                                                    <span style={{ color: theme.palette.primary.main, fontWeight: 500 }}>{course.enrollmentCount || 0} Students</span>
+                                                    <span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>{course.enrollmentCount || 0} Students</span>
                                                 </Typography>
                                             </Box>
-                                            <Button size="small" variant="text" sx={{ borderRadius: '8px' }}>Manage</Button>
+                                            <Button size="small" variant="outlined" sx={{ borderRadius: '8px' }}>Manage</Button>
                                         </Box>
                                     </motion.div>
                                 )) : (
@@ -298,7 +329,7 @@ const TeacherDashboard = () => {
                             <CardContent sx={{ p: 3 }}>
                                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Weak Topics of the Week</Typography>
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                    {weakTopics.map((topic, i) => (
+                                    {weakTopics.length > 0 ? weakTopics.map((topic, i) => (
                                         <motion.div key={i} whileHover={{ scale: 1.05 }}>
                                             <Box sx={{
                                                 px: 2, py: 1,
@@ -312,7 +343,9 @@ const TeacherDashboard = () => {
                                                 {topic}
                                             </Box>
                                         </motion.div>
-                                    ))}
+                                    )) : (
+                                        <Typography variant="body2" color="text.secondary">No data available yet.</Typography>
+                                    )}
                                 </Box>
                             </CardContent>
                         </Card>
@@ -323,18 +356,22 @@ const TeacherDashboard = () => {
                         <Card>
                             <CardContent sx={{ p: 3 }}>
                                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>Students at Risk 🔴</Typography>
-                                {['Amit Kumar', 'Sneha Gupta'].map((student, i) => (
+                                {atRiskStudents.length > 0 ? atRiskStudents.map((risk, i) => (
                                     <Box key={i} sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
                                         <Avatar sx={{ width: 44, height: 44, mr: 2, bgcolor: `${theme.palette.error.main}20`, color: theme.palette.error.main, fontWeight: 'bold' }}>
-                                            {student[0]}
+                                            {risk.student?.name?.[0] || '?'}
                                         </Avatar>
                                         <Box sx={{ flexGrow: 1 }}>
-                                            <Typography variant="subtitle2" fontWeight="700">{student}</Typography>
-                                            <Typography variant="caption" color="error" fontWeight="500">Critical Attendance</Typography>
+                                            <Typography variant="subtitle2" fontWeight="700">{risk.student?.name || 'Unknown'}</Typography>
+                                            <Typography variant="caption" color="error" fontWeight="500">
+                                                {risk.riskLevel === 'critical' ? 'Critical Risk' : 'Needs Attention'}
+                                            </Typography>
                                         </Box>
-                                        <Button size="small" variant="text" color="error">Alert</Button>
+                                        <Button size="small" variant="text" color="error" onClick={() => navigate(`/teacher/student/${risk.student?._id}`)}>Alert</Button>
                                     </Box>
-                                ))}
+                                )) : (
+                                    <Typography color="text.secondary" textAlign="center" py={2}>No students at risk! 🎉</Typography>
+                                )}
                                 <Button fullWidth variant="outlined" color="error" onClick={() => navigate('/teacher/insights')} sx={{ mt: 1 }}>View All Insights</Button>
                             </CardContent>
                         </Card>

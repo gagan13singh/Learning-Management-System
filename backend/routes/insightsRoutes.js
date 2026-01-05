@@ -7,7 +7,8 @@ const {
     calculateRisks,
     addNote,
     addIncident,
-    getInsightsStats
+    getInsightsStats,
+    getWeakTopics
 } = require('../controllers/insightsController');
 const {
     previewReport,
@@ -22,6 +23,7 @@ router.post('/calculate', protect, authorize('admin', 'teacher'), calculateRisks
 router.post('/note', protect, authorize('admin', 'teacher'), addNote);
 router.post('/incident', protect, authorize('admin', 'teacher'), addIncident);
 router.get('/stats', protect, authorize('admin', 'teacher'), getInsightsStats);
+router.get('/weak-topics', protect, authorize('admin', 'teacher'), getWeakTopics);
 
 // Report Routes
 router.post('/reports/preview', protect, authorize('admin', 'teacher'), previewReport);

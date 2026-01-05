@@ -188,7 +188,7 @@ const StudentTodos = () => {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             <Container maxWidth="md" sx={{ py: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                     <Box>
@@ -221,9 +221,9 @@ const StudentTodos = () => {
                     </Box>
                 </Box>
 
-                <Paper sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                <Paper sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: theme => theme.shadows[1] }}>
                     {filteredTodos.length === 0 ? (
-                        <Box sx={{ p: 5, textAlign: 'center' }}>
+                        <Box sx={{ p: 5, textAlign: 'center', bgcolor: 'background.paper' }}>
                             <Typography color="text.secondary">No tasks found. Great job! 🎉</Typography>
                         </Box>
                     ) : (
@@ -232,10 +232,10 @@ const StudentTodos = () => {
                                 <Box key={todo.id}>
                                     <ListItem
                                         sx={{
-                                            bgcolor: todo.isCompleted ? '#f8f9fa' : 'white',
+                                            bgcolor: todo.isCompleted ? 'action.hover' : 'background.paper',
                                             opacity: todo.isCompleted ? 0.7 : 1,
                                             transition: 'all 0.2s',
-                                            '&:hover': { bgcolor: '#fcfcfc' },
+                                            '&:hover': { bgcolor: 'action.selected' },
                                             py: 2
                                         }}
                                     >

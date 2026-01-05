@@ -74,25 +74,44 @@ const TodoWidget = () => {
     };
 
     return (
-        <Card sx={{ height: '100%', borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f0f0f0' }}>
+        <Card sx={{
+            height: '100%',
+            borderRadius: 4,
+            boxShadow: 'none',
+            border: '1px solid',
+            borderColor: 'divider',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'all 0.3s',
+            '&:hover': {
+                boxShadow: '0 10px 30px -5px rgba(0,0,0,0.1)',
+                transform: 'translateY(-2px)'
+            }
+        }}>
+            <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box sx={{
                         p: 1,
                         borderRadius: '12px',
-                        bgcolor: 'info.light',
-                        color: 'info.main',
-                        display: 'flex'
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
                     }}>
                         <PlaylistAddCheck sx={{ fontSize: 20 }} />
                     </Box>
-                    <Typography variant="h6" fontWeight="700">
+                    <Typography variant="h6" fontWeight="bold">
                         My Tasks
                     </Typography>
                 </Box>
                 <IconButton
                     size="small"
-                    sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
+                    sx={{
+                        bgcolor: 'primary.soft',
+                        color: 'primary.main',
+                        transition: 'all 0.2s',
+                        '&:hover': { bgcolor: 'primary.main', color: 'white' }
+                    }}
                     onClick={() => navigate('/student/todos')}
                 >
                     <Add fontSize="small" />
@@ -101,29 +120,39 @@ const TodoWidget = () => {
 
             <CardContent sx={{ p: 0, flexGrow: 1 }}>
                 {loading ? (
-                    <Box sx={{ p: 3, textAlign: 'center' }}>Loading...</Box>
+                    <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>Loading tasks...</Box>
                 ) : todos.length === 0 ? (
                     <Box sx={{ p: 4, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <CheckCircle sx={{ fontSize: 40, color: 'success.light', mb: 1, mx: 'auto', opacity: 0.5 }} />
+                        <Box sx={{ p: 2, borderRadius: '50%', bgcolor: 'success.soft', width: 'fit-content', mx: 'auto', mb: 2 }}>
+                            <CheckCircle sx={{ fontSize: 32, color: 'success.main', opacity: 0.8 }} />
+                        </Box>
                         <Typography variant="body2" color="text.secondary">
-                            All caught up! No tasks.
+                            All caught up! No tasks pending.
                         </Typography>
                         <Button
-                            variant="text"
+                            variant="outlined"
                             size="small"
                             startIcon={<Add />}
                             onClick={() => navigate('/student/todos')}
-                            sx={{ mt: 1 }}
+                            sx={{ mt: 2, borderRadius: 2 }}
                         >
-                            Add New
+                            Add New Task
                         </Button>
                     </Box>
                 ) : (
                     <List sx={{ p: 0 }}>
                         {todos.map((todo, index) => (
                             <Box key={todo.id}>
-                                <ListItem disablePadding sx={{ px: 2, py: 1.5 }}>
-                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                <ListItem
+                                    disablePadding
+                                    sx={{
+                                        px: 2,
+                                        py: 1.5,
+                                        transition: 'background 0.2s',
+                                        '&:hover': { bgcolor: 'action.hover' }
+                                    }}
+                                >
+                                    <ListItemIcon sx={{ minWidth: 40 }}>
                                         {todo.type === 'manual' ? (
                                             <Checkbox
                                                 edge="start"
@@ -133,10 +162,19 @@ const TodoWidget = () => {
                                                 onChange={() => toggleComplete(todo)}
                                                 size="small"
                                                 color="success"
+                                                sx={{ p: 0.5 }}
                                             />
                                         ) : (
                                             <Tooltip title={`Auto: ${todo.type}`}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20 }}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    width: 28,
+                                                    height: 28,
+                                                    borderRadius: '8px',
+                                                    bgcolor: 'background.subtle'
+                                                }}>
                                                     {getTaskIcon(todo.type)}
                                                 </Box>
                                             </Tooltip>
@@ -144,29 +182,39 @@ const TodoWidget = () => {
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={
-                                            <Typography variant="body2" fontWeight="600" sx={{ mb: 0.5, lineHeight: 1.2 }}>
+                                            <Typography variant="body2" fontWeight="600" sx={{ mb: 0.5, lineHeight: 1.3 }}>
                                                 {todo.title}
                                             </Typography>
                                         }
                                         secondary={
-                                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                            <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
                                                 {todo.type !== 'manual' && (
                                                     <Chip
                                                         label={todo.type}
                                                         size="small"
-                                                        sx={{ height: 16, fontSize: '0.6rem', bgcolor: 'Background.paper', border: '1px solid', borderColor: 'divider' }}
+                                                        sx={{
+                                                            height: 20,
+                                                            fontSize: '0.65rem',
+                                                            bgcolor: 'primary.soft',
+                                                            color: 'primary.main',
+                                                            fontWeight: 600
+                                                        }}
                                                     />
                                                 )}
                                                 <Chip
                                                     label={todo.category || 'General'}
                                                     size="small"
-                                                    sx={{ height: 16, fontSize: '0.6rem', bgcolor: 'action.hover' }}
+                                                    sx={{
+                                                        height: 20,
+                                                        fontSize: '0.65rem',
+                                                        bgcolor: 'background.subtle'
+                                                    }}
                                                 />
                                             </Box>
                                         }
                                     />
                                 </ListItem>
-                                {index < todos.length - 1 && <Divider component="li" />}
+                                {index < todos.length - 1 && <Divider component="li" variant="inset" sx={{ ml: 8 }} />}
                             </Box>
                         ))}
                     </List>
@@ -177,10 +225,15 @@ const TodoWidget = () => {
                 <Button
                     fullWidth
                     endIcon={<ArrowForward />}
-                    sx={{ borderRadius: 3, color: 'text.secondary' }}
+                    sx={{
+                        borderRadius: 3,
+                        color: 'text.secondary',
+                        bgcolor: 'action.hover',
+                        '&:hover': { bgcolor: 'action.selected' }
+                    }}
                     onClick={() => navigate('/student/todos')}
                 >
-                    View Full Planner
+                    View All Tasks
                 </Button>
             </Box>
         </Card>

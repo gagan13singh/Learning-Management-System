@@ -269,6 +269,35 @@ exports.getMyAttempts = async (req, res) => {
     }
 };
 
+// @desc    Get ALL student's quiz attempts (for performance analytics)
+// @route   GET /api/quizzes/my-attempts/all
+// @access  Private (Student)
+exports.getMyAllAttempts = async (req, res) => {
+    try {
+        const attempts = await QuizAttempt.find({ student: req.user.id })
+            .populate({
+                path: 'quiz',
+                select: 'title course totalMarks passingPercentage',
+                populate: {
+                    path: 'course',
+                    select: 'title'
+                }
+            })
+            .sort({ attemptDate: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: attempts.length,
+            data: attempts,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
 // @desc    Get quiz analytics (for teachers)
 // @route   GET /api/quizzes/:id/analytics
 // @access  Private (Teacher - own course only)

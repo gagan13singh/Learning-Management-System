@@ -9,6 +9,7 @@ import Layout from './components/layout/Layout';
 // Auth pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
 
 // Student pages
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -22,6 +23,7 @@ import StudentAnnouncements from './pages/student/StudentAnnouncements';
 import StudentPerformance from './pages/student/StudentPerformance';
 import StudentTodos from './pages/student/StudentTodos';
 import StudentCalendar from './pages/student/StudentCalendar';
+import TestEngine from './pages/student/TestEngine';
 import Support from './pages/Support';
 
 // Teacher pages
@@ -34,6 +36,7 @@ import BatchManager from './pages/teacher/BatchManager';
 import AttendanceManager from './pages/teacher/AttendanceManager';
 import Insights from './pages/teacher/Insights';
 import TestManager from './pages/teacher/TestManager';
+import TestMonitor from './pages/teacher/TestMonitor';
 import NotificationCenter from './pages/NotificationCenter';
 
 function App() {
@@ -47,6 +50,7 @@ function App() {
                             {/* Public routes */}
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
+                            <Route path="/forgot-password" element={<ForgotPassword />} />
 
                             {/* Student routes with Layout */}
                             <Route element={<ProtectedRoute allowedRoles={['student']}><Layout /></ProtectedRoute>}>
@@ -61,6 +65,7 @@ function App() {
                                 <Route path="/student/attendance" element={<StudentAttendance />} />
                                 <Route path="/student/todos" element={<StudentTodos />} />
                                 <Route path="/student/calendar" element={<StudentCalendar />} />
+                                <Route path="/student/test/:attemptId/engine" element={<TestEngine />} />
                                 <Route path="/support" element={<Support />} />
                             </Route>
 
@@ -74,6 +79,7 @@ function App() {
                                 <Route path="/teacher/attendance" element={<AttendanceManager />} />
                                 <Route path="/teacher/insights" element={<Insights />} />
                                 <Route path="/teacher/tests" element={<TestManager />} />
+                                <Route path="/teacher/test/:id/monitor" element={<TestMonitor />} />
                                 <Route path="/teacher/profile" element={<Profile />} />
                             </Route>
 

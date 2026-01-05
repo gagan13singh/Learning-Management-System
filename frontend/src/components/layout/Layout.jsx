@@ -13,6 +13,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useColorMode } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../NotificationBell';
+import Footer from '../common/Footer';
 
 const drawerWidth = 260;
 const collapsedDrawerWidth = 80;
@@ -233,13 +234,19 @@ const Layout = () => {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: 3,
+                    p: 0, // Removed padding here to allow full width for child components if needed
                     width: { sm: `calc(100% - ${collapsed ? collapsedDrawerWidth : drawerWidth}px)` },
                     mt: 8,
-                    transition: 'width 0.3s'
+                    transition: 'width 0.3s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: 'calc(100vh - 64px)' // Full height minus header
                 }}
             >
-                <Outlet />
+                <Box sx={{ flexGrow: 1, p: 3 }}>
+                    <Outlet />
+                </Box>
+                <Footer />
             </Box>
         </Box>
     );

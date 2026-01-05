@@ -65,7 +65,9 @@ import {
     Pie,
     Cell
 } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useColorMode } from '../../context/ThemeContext';
 import api from '../../utils/api';
 
 // Mock Data
@@ -92,7 +94,9 @@ const COLORS = ['#10B981', '#F59E0B'];
 
 const Profile = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const { user, updateUser } = useAuth();
+    const { mode, toggleColorMode } = useColorMode();
     const [tabValue, setTabValue] = useState(0);
     const [editOpen, setEditOpen] = useState(false);
     const [passwordOpen, setPasswordOpen] = useState(false);
@@ -114,6 +118,12 @@ const Profile = () => {
         confirmPassword: ''
     });
 
+    // Data State
+    const [stats, setStats] = useState(null);
+    const [performanceData, setPerformanceData] = useState([]);
+    const [attendanceChart, setAttendanceChart] = useState([]);
+
+    // Fetch Data based on Role
     React.useEffect(() => {
         if (user) {
             setProfileData({
@@ -122,8 +132,52 @@ const Profile = () => {
                 phone: user.phone || '',
                 bio: user.bio || '',
             });
+            fetchRoleData();
         }
     }, [user]);
+
+    const fetchRoleData = async () => {
+        try {
+            if (user?.role === 'student') {
+                // Fetch Student Data
+                const [resultsRes, upcomingRes] = await Promise.all([
+                    api.get('/tests/my-results'),
+                    api.get('/tests/upcoming')
+                ]);
+
+                // Process performance data
+                const perfData = resultsRes.data.data.map(r => ({
+                    name: r.title,
+                    score: r.score
+                }));
+                setPerformanceData(perfData);
+
+                // Analyze stats
+                const avgScore = perfData.length > 0
+                    ? (perfData.reduce((acc, curr) => acc + curr.score, 0) / perfData.length).toFixed(1)
+                    : 0;
+
+                setStats({
+                    stat1: { label: 'Avg Score', value: `${avgScore}%`, color: theme.palette.primary.main },
+                    stat2: { label: 'Tests Taken', value: perfData.length, color: theme.palette.secondary.main },
+                    stat3: { label: 'Upcoming', value: upcomingRes.data.data.length, color: theme.palette.warning.main }
+                });
+
+            } else if (user?.role === 'teacher') {
+                // Fetch Teacher Data
+                const res = await api.get('/features/analytics/teacher-stats');
+                const { totalStudents, avgAttendance, totalCourses } = res.data.stats;
+
+                setStats({
+                    stat1: { label: 'Students', value: totalStudents, color: theme.palette.primary.main },
+                    stat2: { label: 'Avg Attendance', value: `${avgAttendance}%`, color: theme.palette.success.main },
+                    stat3: { label: 'Courses', value: totalCourses, color: theme.palette.info.main }
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching profile stats:", error);
+        }
+    };
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -299,24 +353,17 @@ const Profile = () => {
                                 <Card className="glass-card">
                                     <CardContent>
                                         <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <Work color="secondary" /> Professional Info
+                                            <Work color="secondary" /> Account Status
                                         </Typography>
                                         <Divider sx={{ mb: 2 }} />
                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                             <Box>
-                                                <Typography variant="caption" color="text.secondary">Subjects Taught</Typography>
-                                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
-                                                    <Chip label="Mathematics" size="small" color="primary" variant="outlined" />
-                                                    <Chip label="Physics" size="small" color="primary" variant="outlined" />
-                                                </Box>
+                                                <Typography variant="caption" color="text.secondary">Role</Typography>
+                                                <Typography variant="body1" fontWeight="500">Instructor</Typography>
                                             </Box>
                                             <Box>
-                                                <Typography variant="caption" color="text.secondary">Experience</Typography>
-                                                <Typography variant="body1" fontWeight="500">5 Years</Typography>
-                                            </Box>
-                                            <Box>
-                                                <Typography variant="caption" color="text.secondary">Qualification</Typography>
-                                                <Typography variant="body1" fontWeight="500">M.Sc. Physics, B.Ed</Typography>
+                                                <Typography variant="caption" color="text.secondary">Status</Typography>
+                                                <Chip label="Active" color="success" size="small" />
                                             </Box>
                                         </Box>
                                     </CardContent>
@@ -327,18 +374,53 @@ const Profile = () => {
                                 <CardContent>
                                     <Typography variant="h6" fontWeight="bold" gutterBottom>Quick Actions</Typography>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                        <Tooltip title="Create Test">
-                                            <IconButton sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}><Assignment /></IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Mark Attendance">
-                                            <IconButton sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}><CheckCircle /></IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Add Student">
-                                            <IconButton sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}><Person /></IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="View Timetable">
-                                            <IconButton sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}><CalendarToday /></IconButton>
-                                        </Tooltip>
+                                        {user?.role === 'teacher' ? (
+                                            <>
+                                                <Tooltip title="Create Test">
+                                                    <IconButton
+                                                        onClick={() => navigate('/teacher/tests')}
+                                                        sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                                                    >
+                                                        <Assignment />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Mark Attendance">
+                                                    <IconButton
+                                                        onClick={() => navigate('/teacher/attendance')}
+                                                        sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                                                    >
+                                                        <CheckCircle />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Create Course">
+                                                    <IconButton
+                                                        onClick={() => navigate('/teacher/create-course')}
+                                                        sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                                                    >
+                                                        <Work />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Tooltip title="Browse Courses">
+                                                    <IconButton
+                                                        onClick={() => navigate('/student/courses')}
+                                                        sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                                                    >
+                                                        <MenuBook />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="View Tests">
+                                                    <IconButton
+                                                        onClick={() => navigate('/student/tests')}
+                                                        sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                                                    >
+                                                        <Assignment />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </>
+                                        )}
                                     </Box>
                                 </CardContent>
                             </Card>
@@ -356,113 +438,72 @@ const Profile = () => {
                                     sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
                                 >
                                     <Tab label="Overview" icon={<TrendingUp />} iconPosition="start" />
-                                    <Tab label="Attendance" icon={<CheckCircle />} iconPosition="start" />
-                                    <Tab label="Tests" icon={<Assignment />} iconPosition="start" />
-                                    <Tab label="Behaviour" icon={<Warning />} iconPosition="start" />
-                                    <Tab label="Notes" icon={<NoteAdd />} iconPosition="start" />
                                     <Tab label="Security" icon={<Lock />} iconPosition="start" />
                                 </Tabs>
 
                                 <TabPanel value={tabValue} index={0}>
                                     <Grid container spacing={3}>
                                         <Grid item xs={12}>
-                                            <Typography variant="h6" fontWeight="bold" gutterBottom>Smart Insights</Typography>
+                                            <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                                {user?.role === 'student' ? 'My Progress' : 'Class Insights'}
+                                            </Typography>
                                             <Grid container spacing={2}>
                                                 <Grid item xs={12} md={4}>
-                                                    <Paper sx={{ p: 2, bgcolor: 'rgba(16, 185, 129, 0.1)', border: '1px solid #10B981', borderRadius: 2 }}>
-                                                        <Typography variant="subtitle2" color="success.main" fontWeight="bold">Consistency Score</Typography>
-                                                        <Typography variant="h4" fontWeight="bold" color="success.main">92%</Typography>
-                                                        <Typography variant="caption" color="text.secondary">Top 5% of teachers</Typography>
+                                                    <Paper sx={{ p: 2, bgcolor: `${stats?.stat1?.color}15`, border: `1px solid ${stats?.stat1?.color}`, borderRadius: 2 }}>
+                                                        <Typography variant="subtitle2" sx={{ color: stats?.stat1?.color }} fontWeight="bold">{stats?.stat1?.label || 'Stat 1'}</Typography>
+                                                        <Typography variant="h4" fontWeight="bold" sx={{ color: stats?.stat1?.color }}>{stats?.stat1?.value || '-'}</Typography>
                                                     </Paper>
                                                 </Grid>
                                                 <Grid item xs={12} md={4}>
-                                                    <Paper sx={{ p: 2, bgcolor: 'rgba(245, 158, 11, 0.1)', border: '1px solid #F59E0B', borderRadius: 2 }}>
-                                                        <Typography variant="subtitle2" color="warning.main" fontWeight="bold">Avg. Class Rating</Typography>
-                                                        <Typography variant="h4" fontWeight="bold" color="warning.main">4.8/5</Typography>
-                                                        <Typography variant="caption" color="text.secondary">Based on student feedback</Typography>
+                                                    <Paper sx={{ p: 2, bgcolor: `${stats?.stat2?.color}15`, border: `1px solid ${stats?.stat2?.color}`, borderRadius: 2 }}>
+                                                        <Typography variant="subtitle2" sx={{ color: stats?.stat2?.color }} fontWeight="bold">{stats?.stat2?.label || 'Stat 2'}</Typography>
+                                                        <Typography variant="h4" fontWeight="bold" sx={{ color: stats?.stat2?.color }}>{stats?.stat2?.value || '-'}</Typography>
                                                     </Paper>
                                                 </Grid>
                                                 <Grid item xs={12} md={4}>
-                                                    <Paper sx={{ p: 2, bgcolor: 'rgba(59, 130, 246, 0.1)', border: '1px solid #3B82F6', borderRadius: 2 }}>
-                                                        <Typography variant="subtitle2" color="info.main" fontWeight="bold">Total Classes</Typography>
-                                                        <Typography variant="h4" fontWeight="bold" color="info.main">124</Typography>
-                                                        <Typography variant="caption" color="text.secondary">This academic year</Typography>
+                                                    <Paper sx={{ p: 2, bgcolor: `${stats?.stat3?.color}15`, border: `1px solid ${stats?.stat3?.color}`, borderRadius: 2 }}>
+                                                        <Typography variant="subtitle2" sx={{ color: stats?.stat3?.color }} fontWeight="bold">{stats?.stat3?.label || 'Stat 3'}</Typography>
+                                                        <Typography variant="h4" fontWeight="bold" sx={{ color: stats?.stat3?.color }}>{stats?.stat3?.value || '-'}</Typography>
                                                     </Paper>
                                                 </Grid>
                                             </Grid>
                                         </Grid>
 
                                         <Grid item xs={12} md={6}>
-                                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Attendance Trend (30 Days)</Typography>
+                                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                                                {user?.role === 'student' ? 'Performance History' : 'Recent Test Performance'}
+                                            </Typography>
                                             <Box sx={{ height: 250, width: '100%' }}>
-                                                <ResponsiveContainer>
-                                                    <LineChart data={attendanceData}>
-                                                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                                                        <XAxis dataKey="day" />
-                                                        <YAxis />
-                                                        <RechartsTooltip />
-                                                        <Line type="monotone" dataKey="present" stroke={theme.palette.primary.main} strokeWidth={3} dot={{ r: 4 }} />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </Box>
-                                        </Grid>
-
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Recent Test Performance</Typography>
-                                            <Box sx={{ height: 250, width: '100%' }}>
-                                                <ResponsiveContainer>
-                                                    <BarChart data={testData}>
-                                                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                                                        <XAxis dataKey="name" />
-                                                        <YAxis />
-                                                        <RechartsTooltip />
-                                                        <Bar dataKey="score" fill={theme.palette.secondary.main} radius={[4, 4, 0, 0]} />
-                                                    </BarChart>
-                                                </ResponsiveContainer>
+                                                {performanceData.length > 0 ? (
+                                                    <ResponsiveContainer>
+                                                        <BarChart data={performanceData}>
+                                                            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                                                            <XAxis dataKey="name" />
+                                                            <YAxis />
+                                                            <RechartsTooltip />
+                                                            <Bar dataKey="score" fill={theme.palette.secondary.main} radius={[4, 4, 0, 0]} />
+                                                        </BarChart>
+                                                    </ResponsiveContainer>
+                                                ) : (
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 2 }}>
+                                                        <Typography variant="body2" color="text.secondary">No test data available yet.</Typography>
+                                                    </Box>
+                                                )}
                                             </Box>
                                         </Grid>
                                     </Grid>
                                 </TabPanel>
 
                                 <TabPanel value={tabValue} index={1}>
-                                    <Typography variant="body1" color="text.secondary">Detailed attendance logs will appear here.</Typography>
-                                </TabPanel>
-                                <TabPanel value={tabValue} index={2}>
-                                    <Typography variant="body1" color="text.secondary">Detailed test history and analytics will appear here.</Typography>
-                                </TabPanel>
-                                <TabPanel value={tabValue} index={3}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-                                        <PieChart width={300} height={300}>
-                                            <Pie
-                                                data={behaviourData}
-                                                cx={150}
-                                                cy={150}
-                                                innerRadius={60}
-                                                outerRadius={100}
-                                                fill="#8884d8"
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                            >
-                                                {behaviourData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                ))}
-                                            </Pie>
-                                            <RechartsTooltip />
-                                        </PieChart>
-                                    </Box>
-                                    <Typography align="center" variant="subtitle1" fontWeight="bold">Behaviour Overview</Typography>
-                                </TabPanel>
-                                <TabPanel value={tabValue} index={4}>
-                                    <Button startIcon={<NoteAdd />} variant="outlined" sx={{ mb: 2 }}>Add New Note</Button>
-                                    <Typography variant="body1" color="text.secondary">No notes added yet.</Typography>
-                                </TabPanel>
-                                <TabPanel value={tabValue} index={5}>
                                     <Typography variant="h6" gutterBottom>Account Security</Typography>
                                     <FormControlLabel control={<Switch defaultChecked />} label="Enable Two-Factor Authentication" />
                                     <Divider sx={{ my: 2 }} />
                                     <Typography variant="h6" gutterBottom>Preferences</Typography>
                                     <FormControlLabel control={<Switch />} label="Email Notifications" />
-                                    <FormControlLabel control={<Switch defaultChecked />} label="Dark Mode" />
+                                    <FormControlLabel
+                                        control={<Switch checked={mode === 'dark'} onChange={toggleColorMode} />}
+                                        label="Dark Mode"
+                                    />
                                 </TabPanel>
                             </CardContent>
                         </Card>
