@@ -234,10 +234,9 @@ This is a portfolio project. Feel free to fork and customize for your needs!
 MIT
 
 ## 👨‍💻 Author
-**Your Name**
-- Portfolio: [your-portfolio.com]
-- GitHub: [@yourusername]
-- LinkedIn: [Your LinkedIn]
+GAGANDEEP SINGH
+- GitHub: gagan13singh
+
 
 ---
 
