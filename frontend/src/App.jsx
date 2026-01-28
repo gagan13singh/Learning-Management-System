@@ -6,6 +6,8 @@ import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/layout/Layout';
 
+import LandingPage from './pages/LandingPage';
+
 // Auth pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -38,6 +40,13 @@ import Insights from './pages/teacher/Insights';
 import TestManager from './pages/teacher/TestManager';
 import TestMonitor from './pages/teacher/TestMonitor';
 import NotificationCenter from './pages/NotificationCenter';
+
+// Admin pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import CourseManagement from './pages/admin/CourseManagement';
+import ContentManagement from './pages/admin/ContentManagement';
+import Announcements from './pages/admin/Announcements';
 
 function App() {
     return (
@@ -83,6 +92,18 @@ function App() {
                                 <Route path="/teacher/profile" element={<Profile />} />
                             </Route>
 
+                            {/* Admin routes with Layout */}
+                            <Route element={<ProtectedRoute allowedRoles={['admin']}><Layout /></ProtectedRoute>}>
+                                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                                <Route path="/admin/users" element={<UserManagement />} />
+                                {/* Placeholders for other admin links */}
+                                <Route path="/admin/courses" element={<CourseManagement />} />
+                                <Route path="/admin/content" element={<ContentManagement />} />
+                                <Route path="/admin/announcements" element={<Announcements />} />
+                                <Route path="/admin/analytics" element={<AdminDashboard />} />
+                                <Route path="/admin/settings" element={<AdminDashboard />} />
+                            </Route>
+
                             {/* Common Routes */}
                             <Route
                                 path="/profile"
@@ -103,8 +124,8 @@ function App() {
                                 }
                             />
 
-                            {/* Default redirect */}
-                            <Route path="/" element={<Navigate to="/login" replace />} />
+                            {/* Landing Page */}
+                            <Route path="/" element={<LandingPage />} />
                         </Routes>
                     </Router>
                 </AuthProvider>

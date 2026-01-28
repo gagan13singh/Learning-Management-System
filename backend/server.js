@@ -60,6 +60,7 @@ app.use('/api/announcements', require('./routes/announcementRoutes'));
 app.use('/api/todos', require('./routes/todoRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

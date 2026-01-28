@@ -3,34 +3,36 @@ const mongoose = require('mongoose');
 const announcementSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: [true, 'Announcement title is required'],
+        required: [true, 'Please provide a title'],
         trim: true,
+        maxlength: [100, 'Title cannot be more than 100 characters']
     },
     message: {
         type: String,
-        required: [true, 'Announcement message is required'],
+        required: [true, 'Please provide a message'],
+        maxlength: [500, 'Message cannot be more than 500 characters']
+    },
+    target: {
+        type: String,
+        enum: ['all', 'students', 'instructors'],
+        default: 'all'
     },
     type: {
         type: String,
-        enum: ['general', 'urgent', 'test', 'notes', 'class_cancelled'],
-        default: 'general',
+        enum: ['info', 'warning', 'success', 'alert'],
+        default: 'info'
     },
-    course: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Course',
-    },
-    postedBy: {
+    createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+        required: true
     },
-    priority: {
-        type: String,
-        enum: ['low', 'medium', 'high'],
-        default: 'medium',
-    },
+    isActive: { // Can be used to soft delete or hide
+        type: Boolean,
+        default: true
+    }
 }, {
-    timestamps: true,
+    timestamps: true
 });
 
 module.exports = mongoose.model('Announcement', announcementSchema);

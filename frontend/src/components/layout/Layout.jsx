@@ -69,7 +69,20 @@ const Layout = () => {
         { text: 'Support/Help', icon: <Help />, path: '/support' },
     ];
 
-    const menuItems = user?.role === 'student' ? studentMenuItems : teacherMenuItems;
+    const adminMenuItems = [
+        { text: 'Dashboard', icon: <Dashboard />, path: '/admin/dashboard' },
+        { text: 'Users', icon: <People />, path: '/admin/users' },
+        { text: 'Courses', icon: <School />, path: '/admin/courses' },
+        { text: 'Content', icon: <PlaylistAddCheck />, path: '/admin/content' },
+        { text: 'Analytics', icon: <Insights />, path: '/admin/analytics' },
+        { text: 'Settings', icon: <Settings />, path: '/admin/settings' },
+        { text: 'Profile', icon: <Person />, path: '/profile' },
+    ];
+
+    let menuItems = [];
+    if (user?.role === 'admin') menuItems = adminMenuItems;
+    else if (user?.role === 'teacher') menuItems = teacherMenuItems;
+    else menuItems = studentMenuItems;
 
     const drawerContent = (
         <Box sx={{
