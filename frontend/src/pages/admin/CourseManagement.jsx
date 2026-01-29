@@ -7,7 +7,7 @@ import {
 import {
     Search, MoreVert, Delete, CheckCircle, Cancel, Visibility, School
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { motion } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
@@ -39,13 +39,10 @@ const CourseManagement = () => {
     const fetchCourses = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            let url = `http://localhost:5000/api/admin/courses?search=${searchTerm}`;
+            let url = `/api/admin/courses?search=${searchTerm}`;
             if (statusFilter !== 'all') url += `&status=${statusFilter}`;
 
-            const res = await axios.get(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(url);
 
             if (res.data.success) {
                 setCourses(res.data.data);
@@ -71,10 +68,8 @@ const CourseManagement = () => {
     const handleStatusUpdate = async (newStatus) => {
         if (!selectedCourse) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/admin/courses/${selectedCourse._id}/status`,
-                { status: newStatus },
-                { headers: { Authorization: `Bearer ${token}` } }
+            await api.put(`/api/admin/courses/${selectedCourse._id}/status`,
+                { status: newStatus }
             );
             showSuccess(`Course ${newStatus === 'published' ? 'Published' : 'Drafted'} successfully`);
             fetchCourses();
@@ -89,10 +84,7 @@ const CourseManagement = () => {
         if (!window.confirm("Are you sure you want to delete this course? This action cannot be undone.")) return;
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/admin/courses/${selectedCourse._id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/admin/courses/${selectedCourse._id}`);
             showSuccess("Course deleted successfully");
             fetchCourses();
             handleMenuClose();

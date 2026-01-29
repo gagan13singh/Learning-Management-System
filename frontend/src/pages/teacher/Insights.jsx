@@ -8,7 +8,7 @@ import {
     Warning, Error as ErrorIcon, CheckCircle, Refresh, Send, Note,
     Timeline, TrendingDown, TrendingUp
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,10 +37,7 @@ const Insights = () => {
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/insights/stats', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/insights/stats');
             setStats(res.data.data);
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -50,10 +47,7 @@ const Insights = () => {
     const fetchAtRiskStudents = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5000/api/insights/at-risk?riskLevel=${filter}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(`/api/insights/at-risk?riskLevel=${filter}`);
             setStudents(res.data.data);
         } catch (error) {
             console.error('Error fetching students:', error);
@@ -65,10 +59,7 @@ const Insights = () => {
     const calculateRisks = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/insights/calculate', {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.post('/api/insights/calculate', {});
             alert('Risk calculation complete!');
             fetchStats();
             fetchAtRiskStudents();
@@ -91,12 +82,9 @@ const Insights = () => {
 
         // Fetch preview
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/api/insights/reports/preview', {
+            const res = await api.post('/api/insights/reports/preview', {
                 studentId: student.student._id,
                 template: student.riskLevel === 'critical' ? 'critical' : 'at-risk'
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
             setReportPreview(res.data.data);
         } catch (error) {
@@ -108,16 +96,13 @@ const Insights = () => {
 
     const sendReport = async () => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/insights/reports/send', {
+            await api.post('/api/insights/reports/send', {
                 studentId: selectedStudent.student._id,
                 channel: reportData.channel,
                 template: reportData.template,
                 customMessage: reportData.customMessage || reportPreview?.message,
                 recipientEmail: reportData.recipientEmail,
                 recipientPhone: reportData.recipientPhone
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
             alert(`Report sent via ${reportData.channel}!`);
             setReportModalOpen(false);

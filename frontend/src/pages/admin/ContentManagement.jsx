@@ -7,7 +7,7 @@ import {
 import {
     Search, Delete, Visibility, PlayCircle, Description, AttachFile
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { motion } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 
@@ -36,10 +36,7 @@ const ContentManagement = () => {
     const fetchContent = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5000/api/admin/content?search=${searchTerm}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(`/api/admin/content?search=${searchTerm}`);
             if (res.data.success) {
                 setContent(res.data.data);
             }
@@ -59,10 +56,8 @@ const ContentManagement = () => {
     const handleDeleteConfirm = async () => {
         if (!selectedItem) return;
         try {
-            const token = localStorage.getItem('token');
             // The payload matches what backend deleteContent expects
-            await axios.delete('http://localhost:5000/api/admin/content', {
-                headers: { Authorization: `Bearer ${token}` },
+            await api.delete('/api/admin/content', {
                 data: {
                     type: selectedItem.type,
                     id: selectedItem._id,

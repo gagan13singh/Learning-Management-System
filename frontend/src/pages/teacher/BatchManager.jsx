@@ -5,7 +5,7 @@ import {
     MenuItem, LinearProgress, Chip, IconButton, List, ListItem, ListItemText, ListItemAvatar, Avatar
 } from '@mui/material';
 import { Add, People, Event, TrendingUp, Warning, PersonAdd, Delete, Edit } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useTheme } from '@mui/material/styles';
 
 const BatchManager = () => {
@@ -37,10 +37,7 @@ const BatchManager = () => {
 
     const fetchBatches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/features/batches', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/features/batches');
             setBatches(res.data.batches);
         } catch (error) {
             console.error(error);
@@ -49,10 +46,7 @@ const BatchManager = () => {
 
     const fetchCourses = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/courses/teacher/my-courses', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/courses/teacher/my-courses');
             setCourses(res.data.data || []);
         } catch (error) {
             console.error(error);
@@ -61,10 +55,7 @@ const BatchManager = () => {
 
     const fetchStudents = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/auth/students', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/auth/students');
             setStudents(res.data.data || []);
         } catch (error) {
             console.error(error);
@@ -104,10 +95,7 @@ const BatchManager = () => {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/features/batches/${batchId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/features/batches/${batchId}`);
             fetchBatches();
             alert('Batch deleted successfully');
         } catch (error) {
@@ -126,16 +114,11 @@ const BatchManager = () => {
         if (!payload.endDate) delete payload.endDate;
 
         try {
-            const token = localStorage.getItem('token');
             if (isEditing && selectedBatch) {
-                await axios.put(`http://localhost:5000/api/features/batches/${selectedBatch._id}`, payload, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.put(`/api/features/batches/${selectedBatch._id}`, payload);
                 alert('Batch updated successfully!');
             } else {
-                await axios.post('http://localhost:5000/api/features/batches', payload, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.post('/api/features/batches', payload);
                 alert('Batch created successfully!');
             }
             setOpen(false);
@@ -148,20 +131,15 @@ const BatchManager = () => {
 
     const handleAddStudent = async () => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/features/batches/add-student', {
+            await api.post('/api/features/batches/add-student', {
                 batchId: selectedBatch._id,
                 studentId: selectedStudentId
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
             setAddStudentOpen(false);
             // Refresh batch data to show new student
             fetchBatches();
             // Also update selectedBatch if it's currently being viewed
-            const updatedBatches = await axios.get('http://localhost:5000/api/features/batches', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const updatedBatches = await api.get('/api/features/batches');
             const updatedBatch = updatedBatches.data.batches.find(b => b._id === selectedBatch._id);
             setSelectedBatch(updatedBatch);
         } catch (error) {

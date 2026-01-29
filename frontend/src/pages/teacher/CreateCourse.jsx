@@ -7,7 +7,7 @@ import {
 import { CloudUpload, Delete, PersonAdd, CheckCircle } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios';
 
 const steps = ['Course Details', 'Create Batch', 'Add Students'];
 
@@ -59,12 +59,9 @@ const CreateCourse = () => {
 
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/api/courses', {
+            const res = await api.post('/api/courses', {
                 ...courseData,
                 tags: courseData.tags ? courseData.tags.split(',').map(t => t.trim()) : []
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
             setCreatedCourseId(res.data.data._id);
             setActiveStep(1);
@@ -79,13 +76,10 @@ const CreateCourse = () => {
     const createBatch = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/api/features/batches', {
+            const res = await api.post('/api/features/batches', {
                 ...batchData,
                 schedule,
                 courseId: createdCourseId
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
             setCreatedBatchId(res.data.batch._id);
             setActiveStep(2);
@@ -104,12 +98,9 @@ const CreateCourse = () => {
         }
 
         try {
-            const token = localStorage.getItem('token');
             // Register User
-            const res = await axios.post('http://localhost:5000/api/auth/bulk-register', {
+            const res = await api.post('/api/auth/bulk-register', {
                 students: [manualData]
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
 
             const createdUsers = res.data.users;
@@ -117,11 +108,9 @@ const CreateCourse = () => {
 
             // Add to Batch
             if (createdBatchId && studentIds.length > 0) {
-                await axios.post('http://localhost:5000/api/features/batches/add-students', {
+                await api.post('/api/features/batches/add-students', {
                     batchId: createdBatchId,
                     studentIds
-                }, {
-                    headers: { Authorization: `Bearer ${token}` }
                 });
             }
 
@@ -149,11 +138,8 @@ const CreateCourse = () => {
 
             // Bulk Register
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.post('http://localhost:5000/api/auth/bulk-register', {
+                const res = await api.post('/api/auth/bulk-register', {
                     students: parsedStudents
-                }, {
-                    headers: { Authorization: `Bearer ${token}` }
                 });
 
                 // Add to batch logic
@@ -161,11 +147,9 @@ const CreateCourse = () => {
                 const studentIds = createdUsers.map(u => u._id);
 
                 if (createdBatchId && studentIds.length > 0) {
-                    await axios.post('http://localhost:5000/api/features/batches/add-students', {
+                    await api.post('/api/features/batches/add-students', {
                         batchId: createdBatchId,
                         studentIds
-                    }, {
-                        headers: { Authorization: `Bearer ${token}` }
                     });
                 }
 

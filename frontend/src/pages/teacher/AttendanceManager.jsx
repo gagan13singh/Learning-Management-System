@@ -6,7 +6,7 @@ import {
     Paper, FormControl, InputLabel, Select, Tooltip
 } from '@mui/material';
 import { Save, CheckCircle, Cancel, AccessTime, Search, FilterList } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useTheme } from '@mui/material/styles';
 
 const AttendanceManager = () => {
@@ -33,10 +33,7 @@ const AttendanceManager = () => {
 
     const fetchBatches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/features/batches', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/features/batches');
             setBatches(res.data.batches);
             if (res.data.batches.length > 0) {
                 setSelectedBatch(res.data.batches[0]._id);
@@ -49,21 +46,15 @@ const AttendanceManager = () => {
     const fetchBatchData = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-
             // 1. Fetch Batch Details (to get students)
-            const batchRes = await axios.get(`http://localhost:5000/api/features/batches/${selectedBatch}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const batchRes = await api.get(`/api/features/batches/${selectedBatch}`);
             const batchStudents = batchRes.data.data.students;
             setStudents(batchStudents);
 
             // 2. Fetch Existing Attendance for this date
             // Since we don't have a direct "get by date" endpoint, we fetch all and filter (or use the history endpoint)
             // Ideally, we should add a specific endpoint, but for now let's fetch history and find the date.
-            const attendanceRes = await axios.get(`http://localhost:5000/api/features/attendance/batch/${selectedBatch}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const attendanceRes = await api.get(`/api/features/attendance/batch/${selectedBatch}`);
 
             const existingRecord = attendanceRes.data.attendanceRecords.find(
                 r => new Date(r.date).toISOString().split('T')[0] === selectedDate
@@ -110,18 +101,10 @@ const AttendanceManager = () => {
     const saveAttendance = async () => {
         setSaving(true);
         try {
-            const token = localStorage.getItem('token');
-            const records = Object.entries(attendanceData).map(([studentId, status]) => ({
-                studentId,
-                status
-            }));
-
-            await axios.post('http://localhost:5000/api/features/attendance', {
+            await api.post('/api/features/attendance', {
                 batchId: selectedBatch,
                 date: selectedDate,
                 records
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
 
             setMessage({ type: 'success', text: 'Attendance saved successfully!' });

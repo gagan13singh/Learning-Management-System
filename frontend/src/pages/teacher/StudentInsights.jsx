@@ -4,7 +4,7 @@ import {
     Avatar, Chip, Button, CircularProgress
 } from '@mui/material';
 import { TrendingUp, Warning, CheckCircle, Share } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useTheme } from '@mui/material/styles';
 
 const StudentInsights = () => {
@@ -18,11 +18,8 @@ const StudentInsights = () => {
 
     const fetchStudents = async () => {
         try {
-            const token = localStorage.getItem('token');
             // Fetch batches to get students
-            const res = await axios.get('http://localhost:5000/api/features/batches', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/features/batches');
             const batches = res.data.batches || [];
 
             // Aggregate unique students from all batches
@@ -61,10 +58,7 @@ const StudentInsights = () => {
 
     const handleSendReport = async (studentId) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.get(`http://localhost:5000/api/features/analytics/parent-report/${studentId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.get(`/api/features/analytics/parent-report/${studentId}`);
             alert(`Parent Update Report sent successfully!`);
         } catch (error) {
             console.error(error);

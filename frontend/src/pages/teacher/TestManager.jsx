@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { Add, Assignment, CheckCircle, WhatsApp, Edit, Close, Delete } from '@mui/icons-material';
 
-import axios from 'axios';
+import api from '../../api/axios';
 import { useTheme } from '@mui/material/styles';
 
 const TestManager = () => {
@@ -62,10 +62,7 @@ const TestManager = () => {
     // ... (fetchTests, fetchCourses remain same)
     const fetchTests = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/features/tests', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/features/tests');
             console.log('Tests response:', res.data);
             setTests(res.data.data);
         } catch (error) {
@@ -75,10 +72,7 @@ const TestManager = () => {
 
     const fetchCourses = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/courses/teacher/my-courses', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/courses/teacher/my-courses');
             setCourses(res.data.data || []);
         } catch (error) {
             console.error(error);
@@ -191,10 +185,7 @@ const TestManager = () => {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/features/tests/${testId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/features/tests/${testId}`);
             fetchTests();
             alert('Test deleted successfully');
         } catch (error) {
@@ -223,14 +214,10 @@ const TestManager = () => {
             };
 
             if (isEditing && selectedTest) {
-                await axios.put(`http://localhost:5000/api/features/tests/${selectedTest._id}`, cleanedData, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.put(`/api/features/tests/${selectedTest._id}`, cleanedData);
                 alert('Test updated successfully!');
             } else {
-                const res = await axios.post('http://localhost:5000/api/features/tests', cleanedData, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await api.post('/api/features/tests', cleanedData);
 
                 if (formData.notify) {
                     const course = courses.find(c => c._id === formData.courseId);
@@ -255,10 +242,7 @@ const TestManager = () => {
     const openGrading = async (test) => {
         setSelectedTest(test);
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5000/api/features/tests/${test._id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(`/api/features/tests/${test._id}`);
 
             const results = res.data.data.results.map(r => ({
                 studentId: r.student._id || r.student,
@@ -282,11 +266,8 @@ const TestManager = () => {
 
     const saveGrades = async () => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/features/tests/${selectedTest._id}/results`, {
+            await api.put(`/api/features/tests/${selectedTest._id}/results`, {
                 results: gradingData
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
             setGradingOpen(false);
             fetchTests();

@@ -3,7 +3,7 @@ import {
     Box, Typography, Card, CardContent, Button, Chip, IconButton, Tabs, Tab
 } from '@mui/material';
 import { CheckCircle, Warning, Error as ErrorIcon, Info, Delete } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../api/axios';
 import { useTheme } from '@mui/material/styles';
 
 const NotificationCenter = () => {
@@ -17,11 +17,7 @@ const NotificationCenter = () => {
 
     const fetchNotifications = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const readParam = filter === 'unread' ? 'false' : filter === 'read' ? 'true' : '';
-            const res = await axios.get(`http://localhost:5000/api/notifications?read=${readParam}&limit=100`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(`/api/notifications?read=${readParam}&limit=100`);
             setNotifications(res.data.data);
         } catch (error) {
             console.error('Error fetching notifications:', error);
@@ -30,10 +26,7 @@ const NotificationCenter = () => {
 
     const handleMarkAsRead = async (notificationId) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/notifications/${notificationId}/read`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.put(`/api/notifications/${notificationId}/read`, {});
             fetchNotifications();
         } catch (error) {
             console.error('Error marking as read:', error);
@@ -42,10 +35,7 @@ const NotificationCenter = () => {
 
     const handleMarkAllAsRead = async () => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put('http://localhost:5000/api/notifications/mark-all-read', {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.put('/api/notifications/mark-all-read', {});
             fetchNotifications();
         } catch (error) {
             console.error('Error marking all as read:', error);
@@ -54,10 +44,7 @@ const NotificationCenter = () => {
 
     const handleDelete = async (notificationId) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/notifications/${notificationId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/notifications/${notificationId}`);
             fetchNotifications();
         } catch (error) {
             console.error('Error deleting notification:', error);

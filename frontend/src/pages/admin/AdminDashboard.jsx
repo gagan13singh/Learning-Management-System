@@ -7,7 +7,7 @@ import {
     People, School, AttachMoney, TrendingUp, PersonAdd, Class, Assignment
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useToast } from '../../context/ToastContext';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -25,10 +25,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:5000/api/admin/stats', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await api.get('/api/admin/stats');
                 if (res.data.success) {
                     setStats(res.data.data);
                 }

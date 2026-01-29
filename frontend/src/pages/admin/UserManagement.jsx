@@ -7,7 +7,7 @@ import {
 import {
     Search, MoreVert, Block, CheckCircle, Edit, FilterList, Person, Close
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { motion } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 
@@ -38,13 +38,10 @@ const UserManagement = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            let url = `http://localhost:5000/api/admin/users?search=${searchTerm}`;
+            let url = `/api/admin/users?search=${searchTerm}`;
             if (roleFilter) url += `&role=${roleFilter}`;
 
-            const res = await axios.get(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(url);
 
             if (res.data.success) {
                 setUsers(res.data.data);
@@ -70,11 +67,7 @@ const UserManagement = () => {
     const handleStatusUpdate = async (isActive) => {
         if (!selectedUser) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/admin/users/${selectedUser._id}/status`,
-                { isActive },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.put(`/api/admin/users/${selectedUser._id}/status`, { isActive });
             showSuccess(`User ${isActive ? 'unblocked' : 'blocked'} successfully`);
             fetchUsers();
             handleMenuClose();
@@ -92,11 +85,7 @@ const UserManagement = () => {
     const handleRoleUpdateConfirm = async () => {
         if (!selectedUser) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/admin/users/${selectedUser._id}/role`,
-                { role: newRole },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.put(`/api/admin/users/${selectedUser._id}/role`, { role: newRole });
             showSuccess("User role updated");
             fetchUsers();
             setEditRoleDialogOpen(false);

@@ -3,7 +3,7 @@ import {
     IconButton, Badge, Menu, MenuItem, Typography, Box, Divider, Button, Chip
 } from '@mui/material';
 import { Notifications, CheckCircle, Warning, Error as ErrorIcon, Info } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 
 const NotificationBell = () => {
@@ -27,10 +27,7 @@ const NotificationBell = () => {
 
     const fetchUnreadCount = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/notifications/unread-count', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/notifications/unread-count');
             setUnreadCount(res.data.data.count);
         } catch (error) {
             console.error('Error fetching unread count:', error);
@@ -39,10 +36,7 @@ const NotificationBell = () => {
 
     const fetchNotifications = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/notifications?limit=5', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/notifications?limit=5');
             setNotifications(res.data.data);
         } catch (error) {
             console.error('Error fetching notifications:', error);
@@ -59,10 +53,7 @@ const NotificationBell = () => {
 
     const handleMarkAsRead = async (notificationId) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/notifications/${notificationId}/read`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.put(`/api/notifications/${notificationId}/read`, {});
             fetchUnreadCount();
             fetchNotifications();
         } catch (error) {

@@ -5,7 +5,7 @@ import {
     IconButton, Chip, Alert, CircularProgress, Grid, Stack
 } from '@mui/material';
 import { Delete, Campaign, Send } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useToast } from '../../context/ToastContext';
 import { motion } from 'framer-motion';
 
@@ -26,10 +26,7 @@ const Announcements = () => {
 
     const fetchAnnouncements = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/admin/announcements', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/admin/announcements');
             if (res.data.success) {
                 setAnnouncements(res.data.data);
             }
@@ -43,10 +40,7 @@ const Announcements = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/admin/announcements', form, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.post('/api/admin/announcements', form);
             showSuccess('Announcement published successfully');
             setForm({ title: '', message: '', target: 'all', type: 'info' });
             fetchAnnouncements();
@@ -58,10 +52,7 @@ const Announcements = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this announcement?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/admin/announcements/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/admin/announcements/${id}`);
             showSuccess('Announcement deleted');
             fetchAnnouncements();
         } catch (error) {

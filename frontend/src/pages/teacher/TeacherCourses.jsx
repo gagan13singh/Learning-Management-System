@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios';
 import CourseCard from '../../components/common/CourseCard';
 import { useTheme } from '@mui/material/styles';
 
@@ -29,10 +29,7 @@ const TeacherCourses = () => {
 
     const fetchCourses = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/courses/teacher/my-courses', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/api/courses/teacher/my-courses');
             setCourses(res.data.data);
         } catch (err) {
             console.error(err);
@@ -50,10 +47,7 @@ const TeacherCourses = () => {
         if (!window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) return;
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/courses/${courseId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/courses/${courseId}`);
             setCourses(courses.filter(c => c._id !== courseId));
         } catch (err) {
             console.error(err);
@@ -77,10 +71,7 @@ const TeacherCourses = () => {
 
     const handleSaveEdit = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.put(`http://localhost:5000/api/courses/${editingCourse._id}`, editData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.put(`/api/courses/${editingCourse._id}`, editData);
 
             // Update local list
             setCourses(courses.map(c => c._id === editingCourse._id ? res.data.data : c));

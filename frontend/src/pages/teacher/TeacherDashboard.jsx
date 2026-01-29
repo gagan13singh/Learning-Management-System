@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { Add, TrendingUp, Warning, CheckCircle, School, ArrowForward, AccessTime } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axios';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -48,12 +48,10 @@ const TeacherDashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const token = localStorage.getItem('token');
+
 
             // Fetch Stats
-            const statsRes = await axios.get('http://localhost:5000/api/features/analytics/teacher-stats', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const statsRes = await api.get('/api/features/analytics/teacher-stats');
             const { totalStudents, avgAttendance, atRisk, totalCourses } = statsRes.data.stats;
 
             setStats([
@@ -64,27 +62,19 @@ const TeacherDashboard = () => {
             ]);
 
             // Fetch Tests
-            const testsRes = await axios.get('http://localhost:5000/api/quizzes/teacher/my-quizzes', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const testsRes = await api.get('/api/quizzes/teacher/my-quizzes');
             setUpcomingTests(testsRes.data.quizzes?.slice(0, 3) || []);
 
             // Fetch Recent Courses
-            const coursesRes = await axios.get('http://localhost:5000/api/courses/teacher/my-courses', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const coursesRes = await api.get('/api/courses/teacher/my-courses');
             setRecentCourses(coursesRes.data.data?.slice(0, 3) || []);
 
             // Fetch Weak Topics (Real)
-            const weakRes = await axios.get('http://localhost:5000/api/insights/weak-topics', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const weakRes = await api.get('/api/insights/weak-topics');
             setWeakTopics(weakRes.data.data || []);
 
             // Fetch At-Risk Students (Real)
-            const riskRes = await axios.get('http://localhost:5000/api/insights/at-risk?riskLevel=all', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const riskRes = await api.get('/api/insights/at-risk?riskLevel=all');
             setAtRiskStudents(riskRes.data.data?.slice(0, 3) || []);
 
             setLoading(false);
