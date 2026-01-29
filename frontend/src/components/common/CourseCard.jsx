@@ -65,6 +65,20 @@ const CourseCard = ({ course, onEnroll, onView, onEdit, onDelete, onManage, enro
                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                         }}
                     />
+                    {isTeacher && (
+                        <Chip
+                            label={course.status === 'published' ? 'PUBLISHED' : 'DRAFT'}
+                            size="small"
+                            color={course.status === 'published' ? 'success' : 'default'}
+                            sx={{
+                                bgcolor: course.status === 'published' ? 'success.main' : 'rgba(0, 0, 0, 0.6)',
+                                color: 'white',
+                                backdropFilter: 'blur(4px)',
+                                fontWeight: 700,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                            }}
+                        />
+                    )}
                 </Box>
             </Box>
 

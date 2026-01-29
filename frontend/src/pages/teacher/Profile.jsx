@@ -49,7 +49,8 @@ import {
     Share,
     Assignment,
     MenuBook,
-    Person
+    Person,
+    ArrowBack
 } from '@mui/icons-material';
 import {
     LineChart,
@@ -281,6 +282,19 @@ const Profile = () => {
                             </Box>
                         </Grid>
                         <Grid item xs>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                <Button
+                                    startIcon={<ArrowBack />}
+                                    sx={{ color: 'white', borderColor: 'transparent', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}
+                                    onClick={() => {
+                                        if (user?.role === 'admin') navigate('/admin/dashboard');
+                                        else if (user?.role === 'teacher') navigate('/teacher/dashboard');
+                                        else navigate('/student/dashboard');
+                                    }}
+                                >
+                                    Back
+                                </Button>
+                            </Box>
                             <Typography variant="h3" fontWeight="bold" sx={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                 {user?.name || 'User Name'}
                             </Typography>

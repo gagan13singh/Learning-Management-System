@@ -39,7 +39,7 @@ const LandingPage = () => {
                 <Container maxWidth="xl" sx={{ py: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h5" fontWeight="800" letterSpacing={-0.5} sx={{ color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Box component="span" sx={{ width: 8, height: 8, bgcolor: '#6366F1', borderRadius: '50%' }} />
-                        EduSync
+                        Scientia
                     </Typography>
                     <Stack direction="row" spacing={2}>
                         <Button color="inherit" onClick={() => navigate('/login')} sx={{ textTransform: 'none', fontWeight: 500 }}>Login</Button>
@@ -272,7 +272,7 @@ const LandingPage = () => {
             {/* Footer */}
             <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.05)', py: 6 }}>
                 <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2" color="grey.600">© 2024 EduSync. All rights reserved.</Typography>
+                    <Typography variant="body2" color="grey.600">© {new Date().getFullYear()} Scientia. All rights reserved.</Typography>
                     <Stack direction="row" spacing={4}>
                         <Typography variant="body2" color="grey.500" sx={{ cursor: 'pointer', '&:hover': { color: 'white' } }}>Privacy</Typography>
                         <Typography variant="body2" color="grey.500" sx={{ cursor: 'pointer', '&:hover': { color: 'white' } }}>Terms</Typography>

@@ -7,7 +7,7 @@ import {
     Dashboard, Class, EventAvailable, Insights,
     Menu, Logout, Settings, Person, Quiz, ChevronLeft, ChevronRight,
     Brightness4, Brightness7, People, School, Assignment, CheckCircle,
-    CalendarToday, Help, PlaylistAddCheck
+    CalendarToday, Help, PlaylistAddCheck, Campaign
 } from '@mui/icons-material';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useColorMode } from '../../context/ThemeContext';
@@ -74,7 +74,7 @@ const Layout = () => {
         { text: 'Users', icon: <People />, path: '/admin/users' },
         { text: 'Courses', icon: <School />, path: '/admin/courses' },
         { text: 'Content', icon: <PlaylistAddCheck />, path: '/admin/content' },
-        { text: 'Analytics', icon: <Insights />, path: '/admin/analytics' },
+        { text: 'Announcements', icon: <Campaign />, path: '/admin/announcements' },
         { text: 'Settings', icon: <Settings />, path: '/admin/settings' },
         { text: 'Profile', icon: <Person />, path: '/profile' },
     ];
@@ -104,7 +104,7 @@ const Layout = () => {
                 <Avatar sx={{ bgcolor: theme.palette.primary.main, width: collapsed ? 32 : 40, height: collapsed ? 32 : 40 }}>T</Avatar>
                 {!collapsed && (
                     <Typography variant="h6" fontWeight="bold" sx={{ background: theme.palette.gradients.primary, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>
-                        EduSync
+                        Scientia
                     </Typography>
                 )}
             </Box>
@@ -197,7 +197,7 @@ const Layout = () => {
                         <Menu />
                     </IconButton>
                     <Typography variant="h6" noWrap component="h1" fontWeight="bold" sx={{ flexGrow: 1, background: theme.palette.gradients.primary, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        EduSync
+                        Scientia
                     </Typography>
                     <NotificationBell />
                 </Toolbar>
@@ -256,7 +256,7 @@ const Layout = () => {
                     minHeight: 'calc(100vh - 64px)' // Full height minus header
                 }}
             >
-                <Box sx={{ flexGrow: 1, p: 3 }}>
+                <Box sx={{ flexGrow: 1, p: { xs: 2, sm: 3 } }}>
                     <Outlet />
                 </Box>
                 <Footer />

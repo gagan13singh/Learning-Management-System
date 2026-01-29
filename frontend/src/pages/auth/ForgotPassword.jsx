@@ -15,6 +15,11 @@ const ForgotPassword = () => {
     return (
         <Container maxWidth="sm" sx={{ mt: 8 }}>
             <Paper sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="h4" color="primary" fontWeight="800" gutterBottom>
+                        Scientia
+                    </Typography>
+                </Box>
                 <Typography variant="h5" fontWeight="bold" gutterBottom>
                     Reset Password
                 </Typography>

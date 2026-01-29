@@ -47,6 +47,7 @@ import UserManagement from './pages/admin/UserManagement';
 import CourseManagement from './pages/admin/CourseManagement';
 import ContentManagement from './pages/admin/ContentManagement';
 import Announcements from './pages/admin/Announcements';
+import AdminSettings from './pages/admin/AdminSettings';
 
 function App() {
     return (
@@ -100,8 +101,7 @@ function App() {
                                 <Route path="/admin/courses" element={<CourseManagement />} />
                                 <Route path="/admin/content" element={<ContentManagement />} />
                                 <Route path="/admin/announcements" element={<Announcements />} />
-                                <Route path="/admin/analytics" element={<AdminDashboard />} />
-                                <Route path="/admin/settings" element={<AdminDashboard />} />
+                                <Route path="/admin/settings" element={<AdminSettings />} />
                             </Route>
 
                             {/* Common Routes */}

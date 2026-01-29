@@ -147,7 +147,7 @@ const Login = () => {
                 >
                     <School sx={{ fontSize: 80, mb: 2, opacity: 0.9 }} />
                     <Typography variant="h2" fontWeight="800" gutterBottom>
-                        EduPrime
+                        Scientia
                     </Typography>
                     <Typography variant="h5" sx={{ opacity: 0.8, maxWidth: 400, mx: 'auto' }}>
                         Empowering the next generation of learners and educators.
@@ -356,7 +356,7 @@ const Login = () => {
 
                     <Box sx={{ mt: 8, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary">
-                            © {new Date().getFullYear()} EduPrime LMS. All rights reserved.
+                            © {new Date().getFullYear()} Scientia LMS. All rights reserved.
                         </Typography>
                     </Box>
                 </Container>

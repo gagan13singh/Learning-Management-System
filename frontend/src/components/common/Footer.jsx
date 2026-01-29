@@ -31,7 +31,7 @@ const Footer = () => {
                 <Grid container spacing={4}>
                     <Grid item xs={12} md={4}>
                         <Typography variant="h5" color="primary" sx={{ fontWeight: 800, mb: 2, letterSpacing: '-0.5px' }}>
-                            EduPrime
+                            Scientia
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 300 }}>
                             Empowering students and teachers with a modern, intuitive, and professional learning management system. Elevate your education journey with us.
@@ -111,7 +111,7 @@ const Footer = () => {
                             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                                 <Email fontSize="small" color="primary" />
                                 <Typography variant="body2" color="text.secondary">
-                                    support@eduprime.com
+                                    support@scientia.com
                                 </Typography>
                             </Box>
                         </Box>
@@ -120,7 +120,7 @@ const Footer = () => {
 
                 <Box sx={{ mt: 8, pt: 3, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
                     <Typography variant="body2" color="text.secondary">
-                        © {new Date().getFullYear()} EduPrime LMS. All rights reserved.
+                        © {new Date().getFullYear()} Scientia LMS. All rights reserved.
                     </Typography>
                 </Box>
             </Container>

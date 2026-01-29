@@ -162,7 +162,7 @@ const Register = () => {
                         <PersonAdd sx={{ fontSize: 50 }} />
                     </Box>
                     <Typography variant="h3" fontWeight="800" gutterBottom>
-                        Join EduPrime
+                        Join Scientia
                     </Typography>
                     <Typography variant="h6" sx={{ opacity: 0.9, maxWidth: 400 }}>
                         Start your learning journey with thousands of courses and expert teachers.
@@ -396,7 +396,7 @@ const Register = () => {
                     </Box>
                     <Box sx={{ mt: 4, textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary">
-                            © {new Date().getFullYear()} EduPrime LMS. Built for Education.
+                            © {new Date().getFullYear()} Scientia LMS. Built for Education.
                         </Typography>
                     </Box>
                 </Container>

@@ -52,7 +52,7 @@ const CourseManagement = () => {
             }
         } catch (error) {
             console.error("Error fetching courses:", error);
-            showError("Failed to load courses");
+            showError(error.response?.data?.message || error.response?.data?.error || "Failed to load courses");
         } finally {
             setLoading(false);
         }

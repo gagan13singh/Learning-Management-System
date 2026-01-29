@@ -45,7 +45,7 @@ const ContentManagement = () => {
             }
         } catch (error) {
             console.error("Error fetching content:", error);
-            showError("Failed to load content");
+            showError(error.response?.data?.message || error.response?.data?.error || "Failed to load content");
         } finally {
             setLoading(false);
         }

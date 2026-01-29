@@ -48,7 +48,7 @@ exports.getDashboardStats = async (req, res) => {
         const recentEnrollments = await Enrollment.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .populate('user', 'name email')
+            .populate('student', 'name email')
             .populate('course', 'title price');
 
         res.status(200).json({
@@ -204,9 +204,10 @@ exports.getAllCourses = async (req, res) => {
             data: courses
         });
     } catch (error) {
+        console.error("Error in getAllCourses:", error);
         res.status(500).json({
             success: false,
-            message: 'Server Error',
+            message: 'Server Error fetching courses',
             error: error.message
         });
     }
@@ -293,45 +294,49 @@ exports.getAllContent = async (req, res) => {
             .populate('instructor', 'name');
 
         courses.forEach(course => {
-            course.modules.forEach(module => {
-                module.lectures.forEach(lecture => {
-                    // Lecture Content
-                    if (lecture.videoUrl) {
-                        if (!search || lecture.title.toLowerCase().includes(search.toLowerCase())) {
-                            content.push({
-                                _id: lecture._id,
-                                title: lecture.title,
-                                type: 'lecture-video',
-                                url: lecture.videoUrl,
-                                source: `Course: ${course.title} (Module: ${module.title})`,
-                                instructor: course.instructor?.name,
-                                parentId: course._id,
-                                moduleId: module._id,
-                                uploadedAt: lecture.createdAt
-                            });
-                        }
-                    }
-                    // Lecture Resources
-                    if (lecture.resources && lecture.resources.length > 0) {
-                        lecture.resources.forEach(res => {
-                            if (!search || res.title.toLowerCase().includes(search.toLowerCase())) {
-                                content.push({
-                                    _id: res._id,
-                                    title: res.title,
-                                    type: `resource-${res.fileType || 'file'}`,
-                                    url: res.fileUrl,
-                                    source: `Course: ${course.title} (Lecture: ${lecture.title})`,
-                                    instructor: course.instructor?.name,
-                                    parentId: course._id,
-                                    moduleId: module._id,
-                                    lectureId: lecture._id,
-                                    uploadedAt: lecture.createdAt // approximate
+            if (course.modules && Array.isArray(course.modules)) {
+                course.modules.forEach(module => {
+                    if (module.lectures && Array.isArray(module.lectures)) {
+                        module.lectures.forEach(lecture => {
+                            // Lecture Content
+                            if (lecture.videoUrl) {
+                                if (!search || lecture.title.toLowerCase().includes(search.toLowerCase())) {
+                                    content.push({
+                                        _id: lecture._id,
+                                        title: lecture.title,
+                                        type: 'lecture-video',
+                                        url: lecture.videoUrl,
+                                        source: `Course: ${course.title} (Module: ${module.title})`,
+                                        instructor: course.instructor?.name || 'Unknown',
+                                        parentId: course._id,
+                                        moduleId: module._id,
+                                        uploadedAt: lecture.createdAt || new Date()
+                                    });
+                                }
+                            }
+                            // Lecture Resources
+                            if (lecture.resources && lecture.resources.length > 0) {
+                                lecture.resources.forEach(res => {
+                                    if (!search || res.title.toLowerCase().includes(search.toLowerCase())) {
+                                        content.push({
+                                            _id: res._id,
+                                            title: res.title,
+                                            type: `resource-${res.fileType || 'file'}`,
+                                            url: res.fileUrl,
+                                            source: `Course: ${course.title} (Lecture: ${lecture.title})`,
+                                            instructor: course.instructor?.name || 'Unknown',
+                                            parentId: course._id,
+                                            moduleId: module._id,
+                                            lectureId: lecture._id,
+                                            uploadedAt: lecture.createdAt || new Date()
+                                        });
+                                    }
                                 });
                             }
                         });
                     }
                 });
-            });
+            }
         });
 
         // 2. Get Assignment Content (Attachments)
@@ -349,10 +354,10 @@ exports.getAllContent = async (req, res) => {
                             title: att.name,
                             type: 'assignment-file',
                             url: att.url,
-                            source: `Assignment: ${assign.title} (${assign.course?.title})`,
-                            instructor: assign.createdBy?.name,
+                            source: `Assignment: ${assign.title} (${assign.course?.title || 'Unknown Course'})`,
+                            instructor: assign.createdBy?.name || 'Unknown',
                             parentId: assign._id,
-                            uploadedAt: assign.createdAt
+                            uploadedAt: assign.createdAt || new Date()
                         });
                     }
                 });
@@ -367,9 +372,10 @@ exports.getAllContent = async (req, res) => {
             data: content
         });
     } catch (error) {
+        console.error("Error in getAllContent:", error);
         res.status(500).json({
             success: false,
-            message: 'Server Error',
+            message: 'Server Error fetching content',
             error: error.message
         });
     }
@@ -430,6 +436,7 @@ exports.deleteContent = async (req, res) => {
 exports.createAnnouncement = async (req, res) => {
     try {
         const { title, message, target, type } = req.body;
+        const Notification = require('../models/Notification'); // Import Notification model
 
         const announcement = await Announcement.create({
             title,
@@ -439,11 +446,38 @@ exports.createAnnouncement = async (req, res) => {
             createdBy: req.user.id
         });
 
+        // --- Notification Logic ---
+        let recipients = [];
+        if (target === 'all') {
+            // Find ALL active users (students + teachers)
+            recipients = await User.find({ isActive: true }).select('_id');
+        } else if (target === 'students') {
+            recipients = await User.find({ role: 'student', isActive: true }).select('_id');
+        } else if (target === 'teachers') {
+            recipients = await User.find({ role: 'teacher', isActive: true }).select('_id');
+        }
+
+        if (recipients.length > 0) {
+            const notifications = recipients.map(user => ({
+                recipient: user._id,
+                type: 'alert', // or 'general'
+                title: `New Announcement: ${title}`,
+                message: message.substring(0, 100) + (message.length > 100 ? '...' : ''), // Preview
+                priority: 'medium',
+                metadata: { announcementId: announcement._id }
+            }));
+
+            await Notification.insertMany(notifications);
+        }
+        // --------------------------
+
         res.status(201).json({
             success: true,
-            data: announcement
+            data: announcement,
+            message: `Announcement created and ${recipients.length} notifications sent.`
         });
     } catch (error) {
+        console.error("Announcement Error:", error);
         res.status(500).json({
             success: false,
             message: 'Server Error',

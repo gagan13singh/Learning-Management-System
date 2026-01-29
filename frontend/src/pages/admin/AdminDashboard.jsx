@@ -115,7 +115,7 @@ const AdminDashboard = () => {
             {/* Charts Row */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 {/* User Growth Chart */}
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={6}>
                     <Card elevation={0} sx={{ borderRadius: 4, height: '100%', border: '1px solid', borderColor: 'divider' }}>
                         <CardContent>
                             <Typography variant="h6" fontWeight="bold" gutterBottom>User Growth Trends</Typography>
@@ -144,7 +144,7 @@ const AdminDashboard = () => {
                 </Grid>
 
                 {/* Categories Pie Chart */}
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={6}>
                     <Card elevation={0} sx={{ borderRadius: 4, height: '100%', border: '1px solid', borderColor: 'divider' }}>
                         <CardContent>
                             <Typography variant="h6" fontWeight="bold" gutterBottom>Course Categories</Typography>
@@ -176,7 +176,7 @@ const AdminDashboard = () => {
             <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
                 <CardContent>
                     <Typography variant="h6" fontWeight="bold" gutterBottom>Recent Enrollments</Typography>
-                    <TableContainer>
+                    <TableContainer sx={{ overflowX: 'auto' }}>
                         <Table>
                             <TableHead>
                                 <TableRow>
@@ -192,14 +192,14 @@ const AdminDashboard = () => {
                                         <TableCell>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', fontSize: '0.8rem' }}>
-                                                    {enrollment.user?.name?.[0] || 'U'}
+                                                    {enrollment.student?.name?.[0] || 'U'}
                                                 </Avatar>
                                                 <Box>
                                                     <Typography variant="subtitle2" fontWeight="600">
-                                                        {enrollment.user?.name || 'Unknown User'}
+                                                        {enrollment.student?.name || 'Unknown User'}
                                                     </Typography>
                                                     <Typography variant="caption" color="text.secondary">
-                                                        {enrollment.user?.email}
+                                                        {enrollment.student?.email}
                                                     </Typography>
                                                 </Box>
                                             </Box>
