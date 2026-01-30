@@ -13,7 +13,7 @@ import {
 import { Save, ArrowBack } from '@mui/icons-material';
 import Navbar from '../../components/common/Navbar';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const EditProfile = () => {
     const navigate = useNavigate();

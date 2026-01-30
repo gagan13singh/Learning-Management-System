@@ -6,7 +6,7 @@ import {
     DialogContent, List, ListItem, ListItemText, CircularProgress, Alert
 } from '@mui/material';
 import { Refresh, Warning, CheckCircle, Cancel, Visibility, ArrowBack } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const TestMonitor = () => {
     const { id } = useParams(); // Test ID

@@ -18,7 +18,7 @@ import {
     Divider,
 } from '@mui/material';
 import { Add, Delete, Close } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const QuizCreator = ({ open, onClose, courseId, moduleId, onQuizCreated }) => {
     const [title, setTitle] = useState('');

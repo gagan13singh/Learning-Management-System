@@ -12,7 +12,7 @@ import {
     Chip
 } from '@mui/material';
 import { Campaign, Info, Warning, Event } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 import { formatDistanceToNow } from 'date-fns';
 
 const StudentAnnouncements = () => {

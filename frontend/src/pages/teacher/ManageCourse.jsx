@@ -47,7 +47,7 @@ import {
 } from '@mui/icons-material';
 import Navbar from '../../components/common/Navbar';
 import QuizCreator from '../../components/teacher/QuizCreator';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const ManageCourse = () => {
     const { id } = useParams();

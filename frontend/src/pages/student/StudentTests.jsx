@@ -27,7 +27,7 @@ import {
     Timer,
     History
 } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 

@@ -21,7 +21,7 @@ import {
     AutoAwesome as SparkleIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const AIChatWidget = () => {
     const theme = useTheme();

@@ -12,7 +12,7 @@ import {
 import { Download, ArrowBack, Verified } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const CertificateView = () => {
     const { id } = useParams();

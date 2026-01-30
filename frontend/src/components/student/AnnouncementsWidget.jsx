@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const AnnouncementsWidget = () => {
     const navigate = useNavigate();

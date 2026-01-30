@@ -41,7 +41,7 @@ import {
     School
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import api from '../../utils/api';
+import api from '../../api/axios';
 import { format, isPast, isToday, isTomorrow } from 'date-fns';
 
 const StudentTodos = () => {

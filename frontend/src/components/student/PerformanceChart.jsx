@@ -16,7 +16,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { TrendingUp, TrendingDown } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const PerformanceChart = () => {
     const theme = useTheme();

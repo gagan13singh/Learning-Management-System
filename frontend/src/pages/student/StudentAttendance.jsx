@@ -17,7 +17,7 @@ import {
     TableRow
 } from '@mui/material';
 import { CheckCircle, Cancel, RemoveCircle } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const StudentAttendance = () => {
     const [attendanceData, setAttendanceData] = useState(null);

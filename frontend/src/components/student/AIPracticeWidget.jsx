@@ -22,7 +22,7 @@ import {
     CheckCircle,
     Cancel
 } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const AIPracticeWidget = () => {
     // Mock weak topics - In real app, fetch from analytics

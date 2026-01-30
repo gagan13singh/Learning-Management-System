@@ -10,7 +10,7 @@ import {
     CardContent
 } from '@mui/material';
 import PerformanceChart from '../../components/student/PerformanceChart'; // Reuse widget if applicable or enhance
-import api from '../../utils/api';
+import api from '../../api/axios';
 import { TrendingUp, School, EmojiEvents } from '@mui/icons-material';
 
 const StudentPerformance = () => {

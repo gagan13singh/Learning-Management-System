@@ -15,7 +15,7 @@ import {
     DialogActions
 } from '@mui/material';
 import { AccessTime, Warning, Fullscreen } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 import useProctoring from '../../hooks/useProctoring';
 
 const TestEngine = () => {

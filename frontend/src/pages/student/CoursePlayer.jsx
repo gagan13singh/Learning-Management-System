@@ -47,7 +47,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 class ErrorBoundary extends React.Component {
     constructor(props) {

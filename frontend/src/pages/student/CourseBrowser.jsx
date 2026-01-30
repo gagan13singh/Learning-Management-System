@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import CourseCard from '../../components/common/CourseCard';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const CourseBrowser = () => {
     const navigate = useNavigate();

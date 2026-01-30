@@ -24,7 +24,7 @@ import {
     AttachFile,
     Description
 } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 import { formatDistanceToNow, format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 

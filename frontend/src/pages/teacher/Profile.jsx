@@ -69,7 +69,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useColorMode } from '../../context/ThemeContext';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 // Mock Data
 const attendanceData = [

@@ -15,7 +15,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const UpcomingTests = () => {
     const navigate = useNavigate();

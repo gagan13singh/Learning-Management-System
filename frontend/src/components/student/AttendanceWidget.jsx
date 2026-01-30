@@ -8,7 +8,7 @@ import {
     CircularProgress
 } from '@mui/material';
 import { PieChart, CheckCircle } from '@mui/icons-material';
-import api from '../../utils/api';
+import api from '../../api/axios';
 
 const AttendanceWidget = () => {
     const [summary, setSummary] = useState([]);
