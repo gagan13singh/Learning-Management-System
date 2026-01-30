@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api',
+    // Auto-fix URL if user forgot '/api'
+    baseURL: (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '') +
+        ((import.meta.env.VITE_API_URL || '/api').includes('/api') ? '' : '/api'),
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
