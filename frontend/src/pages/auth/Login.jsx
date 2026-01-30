@@ -75,10 +75,7 @@ const Login = () => {
         <Grid container sx={{ minHeight: '100vh' }}>
             {/* Left Side - Branding (Hidden on mobile) */}
             <Grid
-                item
-                xs={false}
-                sm={4}
-                md={6}
+                size={{ xs: 0, sm: 4, md: 6 }}
                 sx={{
                     background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
                     backgroundSize: 'cover',
@@ -157,10 +154,7 @@ const Login = () => {
 
             {/* Right Side - Login Form */}
             <Grid
-                item
-                xs={12}
-                sm={8}
-                md={6}
+                size={{ xs: 12, sm: 8, md: 6 }}
                 component={Paper}
                 elevation={0}
                 square
@@ -233,7 +227,7 @@ const Login = () => {
 
                         {/* Social Login Buttons */}
                         <Grid container spacing={2} sx={{ mb: 3 }}>
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <Button
                                     fullWidth
                                     variant="outlined"
@@ -244,7 +238,7 @@ const Login = () => {
                                     Google
                                 </Button>
                             </Grid>
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <Button
                                     fullWidth
                                     variant="outlined"
@@ -316,6 +310,7 @@ const Login = () => {
                             <FormControlLabel
                                 control={<Checkbox value="remember" color="primary" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />}
                                 label="Remember me"
+                                color="primary"
                                 sx={{ color: 'text.secondary' }}
                             />
                             <Link component={RouterLink} to="/forgot-password" variant="body2" color="primary" fontWeight="600" sx={{ textDecoration: 'none' }}>
@@ -343,7 +338,7 @@ const Login = () => {
                         </Button>
 
                         <Grid container justifyContent="center">
-                            <Grid item>
+                            <Grid>
                                 <Typography variant="body2" color="text.secondary">
                                     Don't have an account?{' '}
                                     <Link component={RouterLink} to="/register" variant="body2" fontWeight="bold" color="primary" sx={{ textDecoration: 'none' }}>
